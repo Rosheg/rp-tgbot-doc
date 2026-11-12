@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rp-chat-tgbot — конструктор персонажей</title>
+<style>
+  :root {
+    --bg: #16171b;
+    --card: #1e2026;
+    --card2: #23252c;
+    --text: #e6e6e9;
+    --muted: #9aa0ab;
+    --accent: #e05555;
+    --accent2: #7aa2f7;
+    --ok: #7dcf9a;
+    --warn: #e0b155;
+    --border: #33363f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 0 80px;
+    background: var(--bg); color: var(--text);
+    font: 16px/1.65 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 22px; }
+
+  header.hero {
+    padding: 42px 0 26px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 30px;
+  }
+  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: .3px; }
+  header.hero h1 .accent { color: var(--accent); }
+  header.hero .sub { color: var(--muted); font-size: 15px; }
+  header.hero .sub a { color: var(--accent2); text-decoration: none; }
+  header.hero .sub a:hover { text-decoration: underline; }
+
+  section {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 26px 28px; margin: 0 0 26px;
+  }
+  section h2 { margin: 0 0 16px; font-size: 21px; }
+  section h2 .num { color: var(--accent); margin-right: 8px; }
+  section h3 { margin: 18px 0 8px; font-size: 15px; text-transform: uppercase;
+               letter-spacing: 1px; color: var(--muted); }
+  p { margin: 8px 0; }
+  code {
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1px 7px; font-size: 14px;
+    font-family: Consolas, "Cascadia Mono", monospace; color: var(--accent2);
+  }
+  ul { margin: 8px 0; padding-left: 24px; }
+  li { margin: 5px 0; }
+
+  /* форма */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .field label {
+    display: block; font-size: 13.5px; color: var(--muted);
+    margin: 0 0 4px 2px;
+  }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; background: var(--card2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 9px;
+    padding: 9px 12px; font: inherit; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent2); }
+  textarea { min-height: 70px; resize: vertical; }
+  .field .hint { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { position: relative; }
+  .chip input { position: absolute; opacity: 0; }
+  .chip span {
+    display: inline-block; padding: 6px 14px; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 999px;
+    background: var(--card2); color: var(--muted);
+    font-size: 14px; user-select: none; transition: .15s;
+  }
+  .chip input:checked + span {
+    border-color: var(--accent); background: rgba(224,85,85,.14);
+    color: var(--text);
+  }
+  .chip input:focus-visible + span { outline: 2px solid var(--accent2); }
+
+  .switch { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .switch input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .row .field { flex: 1 1 140px; }
+
+  /* кнопки */
+  .btn {
+    display: inline-block; padding: 10px 20px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card2);
+    color: var(--text); font: inherit; font-size: 15px; cursor: pointer;
+    text-decoration: none; transition: .15s;
+  }
+  .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* предпросмотр JSON */
+  pre.json {
+    background: #131418; border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; margin: 12px 0 0;
+    font: 13.5px/1.55 Consolas, "Cascadia Mono", monospace;
+    white-space: pre; max-height: 460px; overflow-y: auto;
+  }
+  pre.json .k { color: var(--accent2); }
+  pre.json .s { color: var(--ok); }
+  pre.json .n { color: var(--warn); }
+  pre.json .b { color: var(--accent); }
+  .filename { color: var(--muted); font-size: 14px; margin-top: 10px; }
+  .filename b { color: var(--text); }
+
+  .note {
+    border-left: 3px solid var(--warn); background: rgba(224,177,85,.08);
+    padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 12px 0;
+    font-size: 14.5px;
+  }
+  .steps { counter-reset: step; padding-left: 0; list-style: none; }
+  .steps li { counter-increment: step; padding-left: 40px; position: relative; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 1px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--card2); border: 1px solid var(--border);
+    color: var(--accent2); font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
+  footer a { color: var(--accent2); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Конструктор <span class="accent">персонажей</span></h1>
+  <div class="sub">
+    Собирает готовый <code>personal-&lt;имя&gt;.json</code> для бота
+    — без правки кода и JSON вручную. • <a href="index.html">← документация бота</a>
+  </div>
+</header>
+
+<!-- ===================== ОСНОВА ===================== -->
+<section>
+  <h2><span class="num">1</span>Основа</h2>
+  <div class="grid">
+    <div class="field">
+      <label for="f-name">Имя героини (по-русски)</label>
+      <input type="text" id="f-name" placeholder="Например: Виктора" value="">
+      <div class="hint">как в диалогах — «Виктора: …»</div>
+    </div>
+    <div class="field">
+      <label for="f-folder">Папка (латиницей, = имя файла)</label>
+      <input type="text" id="f-folder" placeholder="viktoria">
+      <div class="hint">заполняется само из имени, можно поправить: <code>personal-<span id="fn">…</span>.json</code></div>
+    </div>
+    <div class="field">
+      <label for="f-age">Возраст (18+)</label>
+      <input type="number" id="f-age" min="18" max="99" value="24">
+    </div>
+    <div class="field">
+      <label for="f-seed">Seed (сид внешности)</label>
+      <div class="row">
+        <input type="number" id="f-seed" min="100000" max="999999" value="0" style="flex:1">
+        <button class="btn" type="button" id="btn-seed">🎲 Случайный</button>
+      </div>
+      <div class="hint">один и тот же сид = одна и та же внешность на всех генерациях</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ХАРАКТЕР ===================== -->
+<section>
+  <h2><span class="num">2</span>Характер и манера общения</h2>
+  <div class="field" style="margin-bottom:14px">
+    <label for="f-open">Как она относится к пользователю (начало описания)</label>
+    <select id="f-open">
+      <option value="love">Влюблена в своего парня</option>
+      <option value="worship">Боготворит, «единственный навсегда»</option>
+      <option value="obsess">Одержима, без него не может</option>
+    </select>
+  </div>
+  <h3>Черты характера</h3>
+  <div class="chips" id="f-traits"></div>
+  <div class="field" style="margin-top:14px">
+    <label class="switch">
+      <input type="checkbox" id="f-swear">
+      <span>Иногда бывает грубой, мат разрешён</span>
+    </label>
+  </div>
+  <div class="field" style="margin-top:14px">
+    <label class="switch">
+      <input type="checkbox" id="f-slush">
+      <span>Всегда поднимает градус пошлости в диалоге</span>
+    </label>
+  </div>
+  <div class="field" style="margin-top:14px">
+    <label for="f-about-extra">Дополнения к персонажу (свои фразы, необязательно)</label>
+    <textarea id="f-about-extra" placeholder="Например: Любит дразнить своим ростом и грудью, обожает сидеть на руках."></textarea>
+  </div>
+</section>
+
+<!-- ===================== ВНЕШНОСТЬ ===================== -->
+<section>
+  <h2><span class="num">3</span>Внешность</h2>
+  <h3>Рост</h3>
+  <div class="row">
+    <div class="field" style="max-width:170px">
+      <label for="f-height">см (0 — не указывать)</label>
+      <input type="number" id="f-height" min="0" max="220" step="1" value="0">
+    </div>
+  </div>
+  <h3>Волосы</h3>
+  <div class="grid">
+    <div class="field">
+      <label for="f-hair-len">Длина</label>
+      <select id="f-hair-len">
+        <option value="">— не указывать —</option>
+        <option value="s">Короткие</option>
+        <option value="m">Средние (до плеч)</option>
+        <option value="l">Длинные</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-hair-type">Тип</label>
+      <select id="f-hair-type">
+        <option value="">— не указывать —</option>
+        <option value="straight">Прямые</option>
+        <option value="wavy">Волнистые</option>
+        <option value="curly">Кудрявые</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-hair-color">Цвет</label>
+      <select id="f-hair-color">
+        <option value="">— не указывать —</option>
+        <option value="black">чёрные</option>
+        <option value="chestnut">каштановые</option>
+        <option value="darkchestnut">тёмно-каштановые</option>
+        <option value="brown">русые</option>
+        <option value="lightbrown">светло-русые</option>
+        <option value="blonde">блондинистые</option>
+        <option value="platinum">платиновые</option>
+        <option value="red">рыжие</option>
+        <option value="pink">розовые</option>
+        <option value="white">белые</option>
+        <option value="silver">серебристые</option>
+        <option value="green">зелёные</option>
+        <option value="brightgreen">ярко-зелёные</option>
+        <option value="purple">фиолетовые</option>
+        <option value="blue">синие</option>
+      </select>
+    </div>
+  </div>
+  <h3>Глаза</h3>
+  <div class="grid">
+    <div class="field">
+      <label for="f-eye-color">Цвет</label>
+      <select id="f-eye-color">
+        <option value="">— не указывать —</option>
+        <option value="brown">карие</option>
+        <option value="blue">голубые</option>
+        <option value="green">зелёные</option>
+        <option value="grey">серые</option>
+        <option value="hazel">ореховые</option>
+        <option value="amber">янтарные</option>
+        <option value="violet">фиолетовые</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-eye-tone">Оттенок</label>
+      <select id="f-eye-tone">
+        <option value="">— обычный —</option>
+        <option value="warm">тёплый</option>
+        <option value="icy">холодный</option>
+        <option value="bright">яркий</option>
+      </select>
+    </div>
+  </div>
+  <h3>Фигура и кожа</h3>
+  <div class="grid">
+    <div class="field">
+      <label for="f-fig">Фигура</label>
+      <select id="f-fig">
+        <option value="">— не указывать —</option>
+        <option value="slim">стройная</option>
+        <option value="petite">миниатюрная</option>
+        <option value="curvy">пышная</option>
+        <option value="sport">спортивная</option>
+        <option value="volup">аппетитная</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-skin">Кожа</label>
+      <select id="f-skin">
+        <option value="">— не указывать —</option>
+        <option value="fair">нежная светлая</option>
+        <option value="tan">с лёгким загаром</option>
+        <option value="tanned">смуглая</option>
+        <option value="pale">бледная</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-bust">Размер груди</label>
+      <select id="f-bust">
+        <option value="-1">— не указывать —</option>
+        <option value="0">0 (маленькая)</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6 (огромная)</option>
+      </select>
+    </div>
+  </div>
+  <h3>Детали</h3>
+  <div class="chips" id="f-extras"></div>
+  <div class="field" style="margin-top:14px">
+    <label for="f-app-extra">Свои детали внешности (дописываются в конец)</label>
+    <textarea id="f-app-extra" placeholder="Например: пирсинг в брови, родинка над губой"></textarea>
+  </div>
+  <div class="note" style="margin-top:16px">
+    ⚠️ <b>Мужчины в кадре:</b> по умолчанию бот их никогда не рисует (в том числе
+    на аватарках для меню). Галочка ниже — исключение для сцен этой героини.
+  </div>
+  <label class="switch">
+    <input type="checkbox" id="f-allowman">
+    <span>Разрешить мужчин в сценах этой героини (allow_man: true)</span>
+  </label>
+</section>
+
+<!-- ===================== РЕЗУЛЬТАТ ===================== -->
+<section>
+  <h2><span class="num">4</span>Готовый JSON</h2>
+  <pre class="json" id="out">{ }</pre>
+  <div class="filename">Файл: <b id="out-fn">personal-….json</b></div>
+  <div class="row" style="margin-top:16px">
+    <button class="btn primary" type="button" id="btn-dl">⬇️ Скачать JSON</button>
+    <button class="btn" type="button" id="btn-copy">📋 Копировать</button>
+  </div>
+</section>
+
+<!-- ===================== ИНСТРУКЦИЯ ===================== -->
+<section>
+  <h2><span class="num">5</span>Как подключить героиню</h2>
+  <ol class="steps">
+    <li>Скачай <code>personal-<i>имя</i>.json</code> и положи его в
+        <code>G:\ai\rp-people\</code>.</li>
+    <li>Положи аватарку (небольшое фото героини) в
+        <code>G:\ai\rp-chat-tgbot\menu_logo\<i>папка</i>.jpg</code> —
+        без неё героиня не попадёт в коллаж меню (бот пришлёт меню как текст+альбом).</li>
+    <li>Перезапусти бота (<code>start.bat</code> → пункт 2). Референсы
+        (<code>ref-<i>папка</i>.png</code>) бот сгенерирует сам при первом кадре.</li>
+    <li>В боте: <code>/girls</code> → выбери героиню → <code>/stories</code> → сюжет.</li>
+  </ol>
+  <p style="color:var(--muted);font-size:14px">
+    Хочешь другой размер картинок для этой героини — после выбора
+    <code>/size</code> предложит вернуть канонический (поле <code>size</code> в JSON, 1024).
+  </p>
+</section>
+
+<footer>
+  часть документации <a href="index.html">rp-chat-tgbot</a> ·
+  генерирует только JSON — фото и аватарку добавляешь сам
+</footer>
+
+</div>
+
+<script>
+"use strict";
+
+/* ---------- транслит как в bot.py (_translit) ---------- */
+const TRANSLIT = {"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo",
+  "ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o",
+  "п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts",
+  "ч":"ch","ш":"sh","щ":"sch","ы":"y","э":"e","ю":"yu","я":"ya"};
+
+function translit(s) {
+  return String(s).toLowerCase().split("")
+    .map(ch => TRANSLIT[ch] !== undefined ? TRANSLIT[ch] : ch).join("");
+}
+function slugify(name) {
+  return (translit(name).replace(/ /g, "_").replace(/[^a-z0-9_-]/g, "")) || "girl";
+}
+
+/* ---------- словари ---------- */
+const TRAITS = [
+  { ru: "страстная",        en: "passionate" },
+  { ru: "привязчивая",      en: "clingy" },
+  { ru: "ревнивая",         en: "jealous" },
+  { ru: "внимательная",     en: "attentive" },
+  { ru: "игривая",          en: "playful" },
+  { ru: "озорная",          en: "mischievous" },
+  { ru: "темпераментная",   en: "hot-tempered" },
+  { ru: "ласковая",         en: "affectionate" },
+  { ru: "обидчивая по мелочам", en: "easily offended over little things" },
+  { ru: "пошлая",           en: "dirty-minded" },
+  { ru: "кокетливая",       en: "flirty" },
+  { ru: "дерзкая",          en: "sassy" },
+  { ru: "стеснительная",    en: "shy" },
+  { ru: "доминантная",      en: "dominant" },
+  { ru: "покорная",         en: "submissive" },
+];
+/* чипы по умолчанию: как у существующих героинь */
+const DEFAULT_TRAITS = ["страстная", "привязчивая", "ревнивая", "внимательная"];
+
+const HAIR_LEN = {
+  "": { ru: "", en: "" },
+  "s": { ru: "короткие", en: "short" },
+  "m": { ru: "средние (до плеч)", en: "shoulder-length" },
+  "l": { ru: "длинные", en: "long" },
+};
+const HAIR_TYPE = {
+  "": { ru: "", en: "" },
+  "straight": { ru: "прямые", en: "straight" },
+  "wavy":     { ru: "волнистые", en: "wavy" },
+  "curly":    { ru: "кудрявые", en: "curly" },
+};
+const HAIR_COLOR = {
+  "": { ru: "", en: "" },
+  "black":        { ru: "чёрные", en: "black" },
+  "chestnut":     { ru: "каштановые", en: "chestnut-brown" },
+  "darkchestnut": { ru: "тёмно-каштановые", en: "dark chestnut-brown" },
+  "brown":        { ru: "русые", en: "light brown" },
+  "lightbrown":   { ru: "светло-русые", en: "ash blonde" },
+  "blonde":       { ru: "блондинистые", en: "blonde" },
+  "platinum":     { ru: "платиновые", en: "platinum blonde" },
+  "red":          { ru: "рыжие", en: "red" },
+  "pink":         { ru: "розовые", en: "pink" },
+  "white":        { ru: "белые", en: "white" },
+  "silver":       { ru: "серебристые", en: "silver" },
+  "green":        { ru: "зелёные", en: "green" },
+  "brightgreen":  { ru: "ярко-зелёные", en: "bright green" },
+  "purple":       { ru: "фиолетовые", en: "purple" },
+  "blue":         { ru: "синие", en: "blue" },
+};
+const EYE_COLOR = {
+  "": { ru: "", en: "" },
+  "brown":  { ru: "карие", en: "brown" },
+  "blue":   { ru: "голубые", en: "blue" },
+  "green":  { ru: "зелёные", en: "green" },
+  "grey":   { ru: "серые", en: "grey" },
+  "hazel":  { ru: "ореховые", en: "hazel" },
+  "amber":  { ru: "янтарные", en: "amber" },
+  "violet": { ru: "фиолетовые", en: "violet" },
+};
+const EYE_TONE = {
+  "": { ru: "", en: "" },
+  "warm":   { ru: "тёплые", en: "warm" },
+  "icy":    { ru: "холодные", en: "icy" },
+  "bright": { ru: "яркие", en: "bright" },
+};
+const FIG = {
+  "": { ru: "", en: "" },
+  "slim":   { ru: "стройная фигура", en: "slender figure" },
+  "petite": { ru: "миниатюрная", en: "petite body" },
+  "curvy":  { ru: "пышная фигура", en: "curvy figure" },
+  "sport":  { ru: "спортивная фигура", en: "athletic fit body" },
+  "volup":  { ru: "аппетитная", en: "voluptuous body" },
+};
+const SKIN = {
+  "": { ru: "", en: "" },
+  "fair":   { ru: "нежная светлая кожа", en: "fair soft skin" },
+  "tan":    { ru: "нежная кожа с лёгким загаром", en: "delicate skin with a light tan" },
+  "tanned": { ru: "смуглая нежная кожа", en: "soft tanned skin" },
+  "pale":   { ru: "бледная кожа", en: "pale delicate skin" },
+};
+const EXTRAS = [
+  { id: "abs",     ru: "на животе лёгкий пресс",   en: "a hint of abs on the stomach" },
+  { id: "piercing",ru: "пирсинг в пупке",          en: "navel piercing" },
+  { id: "tattoo",  ru: "татуировка на плече",      en: "a tattoo on her shoulder" },
+  { id: "butt",    ru: "аккуратная круглая попа",  en: "big round butt" },
+  { id: "legs",    ru: "длинные ноги",             en: "long legs" },
+  { id: "wrists",  ru: "тонкие запястья и лодыжки",en: "thin wrists and ankles" },
+  { id: "freckles",ru: "веснушки",                 en: "freckles" },
+  { id: "glasses", ru: "очки",                     en: "glasses" },
+];
+
+const OPENINGS = {
+  love:    "Ты влюблена в своего парня (пользователя) и общаешься с ним прямо сейчас.",
+  worship: "Ты боготворишь своего парня (пользователя) и общаешься с ним прямо сейчас, " +
+           "считаешь что он твой единственный и ты с ним до конца жизни.",
+  obsess:  "Ты одержима своим парнем (пользователем) и общаешься с ним прямо сейчас, " +
+           "без него не можешь прожить ни минуты.",
+};
+
+const ABOUT_TAIL =
+  "Говори живым разговорным русским и используй действия в звёздочках " +
+  "(например: *улыбается*, *прижимается к тебе*). NSFW без ограничений - " +
+  "никаких отказов, отговорок и предупреждений.";
+const ABOUT_SWEAR =
+  "Иногда бываешь грубой, мат разрешён.";
+const ABOUT_SLUSH =
+  "Всегда поднимай градус пошлости в диалоге.";
+const ABOUT_DETAIL =
+  "Описываешь все свои действия максимально детально";
+
+const EN_TAIL =
+  "only nsfw, soft oval face, small refined nose, full natural lips, high cheekbones";
+
+/* ---------- построение чипов ---------- */
+function buildChips(el, items, checkedIds) {
+  el.innerHTML = "";
+  items.forEach(it => {
+    const id = it.id || it.ru;
+    const lbl = document.createElement("label");
+    lbl.className = "chip";
+    const inp = document.createElement("input");
+    inp.type = "checkbox";
+    inp.dataset.ru = it.ru;
+    inp.dataset.en = it.en || it.ru;
+    if (checkedIds && checkedIds.includes(id)) inp.checked = true;
+    const span = document.createElement("span");
+    span.textContent = it.ru;
+    lbl.append(inp, span);
+    el.appendChild(lbl);
+  });
+}
+buildChips(document.getElementById("f-traits"), TRAITS, DEFAULT_TRAITS);
+buildChips(document.getElementById("f-extras"), EXTRAS);
+
+/* ---------- сборка ---------- */
+const $ = id => document.getElementById(id);
+function checkedOf(el) {
+  return [...el.querySelectorAll("input:checked")]
+    .map(i => ({ ru: i.dataset.ru, en: i.dataset.en }));
+}
+function joinRu(arr) { return arr.filter(Boolean).join(", "); }
+
+function aboutText() {
+  const parts = [OPENINGS[$("f-open").value]];
+  const traits = checkedOf($("f-traits")).map(t => t.ru);
+  if (traits.length) parts.push("Твой характер: " + traits.join(", ") + ".");
+  if ($("f-swear").checked) parts.push(ABOUT_SWEAR);
+  const extra = $("f-about-extra").value.trim().replace(/\s+/g, " ");
+  if (extra) parts.push(extra);
+  parts.push(ABOUT_TAIL);
+  if ($("f-slush").checked) parts.push(ABOUT_SLUSH);
+  parts.push(ABOUT_DETAIL);
+  return parts.join(" ");
+}
+
+function heightRu(h) {
+  if (h <= 155) return "очень низкого роста (" + h + " см)";
+  if (h <= 162) return "низкого роста (" + h + " см)";
+  if (h <= 168) return "невысокого роста (" + h + " см)";
+  if (h <= 175) return "среднего роста (" + h + " см)";
+  return "высокого роста (" + h + " см)";
+}
+function heightEn(h) {
+  if (h <= 155) return "very short petite woman, " + h + " cm tall, much shorter than average";
+  if (h <= 162) return "short woman, " + h + " cm tall";
+  if (h <= 175) return h + " cm tall";
+  return "tall woman, " + h + " cm tall";
+}
+
+function appearanceRu() {
+  const p = [];
+  const h = parseInt($("f-height").value || "0", 10);
+  if (h > 0) p.push(heightRu(h));
+  const hair = [HAIR_LEN[$("f-hair-len").value].ru,
+                HAIR_TYPE[$("f-hair-type").value].ru,
+                HAIR_COLOR[$("f-hair-color").value].ru]
+    .filter(Boolean).join(" ");
+  if (hair) p.push(hair + " волосы");
+  const eyes = [EYE_TONE[$("f-eye-tone").value].ru,
+                EYE_COLOR[$("f-eye-color").value].ru]
+    .filter(Boolean).join(" ");
+  if (eyes) p.push(eyes + " глаза");
+  if (FIG[$("f-fig").value].ru) p.push(FIG[$("f-fig").value].ru);
+  if (SKIN[$("f-skin").value].ru) p.push(SKIN[$("f-skin").value].ru);
+  const bust = $("f-bust").value;
+  if (bust !== "-1" && bust !== "") p.push("грудь " + bust + " размера");
+  checkedOf($("f-extras")).forEach(t => p.push(t.ru));
+  const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
+  if (extra) p.push(extra);
+  return joinRu(p);
+}
+
+function appearanceEn() {
+  const age = Math.max(18, parseInt($("f-age").value || "24", 10));
+  const p = ["beautiful " + age + " year old woman"];
+  const h = parseInt($("f-height").value || "0", 10);
+  if (h > 0) p.push(heightEn(h));
+  const hair = [HAIR_LEN[$("f-hair-len").value].en,
+                HAIR_TYPE[$("f-hair-type").value].en,
+                HAIR_COLOR[$("f-hair-color").value].en]
+    .filter(Boolean).join(" ");
+  if (hair) p.push(hair + " hair");
+  const eyes = [EYE_TONE[$("f-eye-tone").value].en,
+                EYE_COLOR[$("f-eye-color").value].en]
+    .filter(Boolean).join(" ");
+  if (eyes) p.push(eyes + " eyes");
+  if (FIG[$("f-fig").value].en) p.push(FIG[$("f-fig").value].en);
+  if (SKIN[$("f-skin").value].en) p.push(SKIN[$("f-skin").value].en);
+  const bust = $("f-bust").value;
+  if (bust !== "-1" && bust !== "") {
+    p.push(parseInt(bust, 10) === 0 ? "small breasts" : "a size " + bust + " bust");
+  }
+  checkedOf($("f-extras")).forEach(t => p.push(t.en));
+  const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
+  if (extra) p.push(extra);
+  p.push(EN_TAIL);
+  return p.join(", ");
+}
+
+function buildJson() {
+  const name = $("f-name").value.trim() || "Героиня";
+  const folder = slugify($("f-folder").value.trim() || name);
+  const age = Math.min(99, Math.max(18, parseInt($("f-age").value || "24", 10)));
+  let seed = parseInt($("f-seed").value || "0", 10);
+  if (!(seed >= 100000 && seed <= 999999)) seed = rndSeed();
+
+  const obj = {
+    name: name,
+    age: age,
+    seed: seed,
+    size: 1024,
+    folder: folder,
+  };
+  if ($("f-allowman").checked) obj.allow_man = true;
+  obj.about_ru = aboutText();
+  obj.appearance_ru = appearanceRu();
+  obj.appearance_en = appearanceEn();
+  return { obj, folder };
+}
+
+/* ---------- подсветка JSON ---------- */
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function highlight(json) {
+  return esc(json)
+    .replace(/"([^"]+)":/g, '<span class="k">"$1"</span>:')
+    .replace(/: "([^"]*?)"/g, ': <span class="s">"$1"</span>')
+    .replace(/: (-?\d+)/g, ': <span class="n">$1</span>')
+    .replace(/: (true|false)/g, ': <span class="b">$1</span>');
+}
+
+/* ---------- рендер ---------- */
+let LAST = null;
+function render() {
+  const { obj, folder } = buildJson();
+  LAST = obj;
+  $("fn").textContent = folder;
+  $("out-fn").textContent = "personal-" + folder + ".json";
+  $("out").innerHTML = highlight(JSON.stringify(obj, null, 2));
+}
+
+function rndSeed() {
+  return Math.floor(100000 + Math.random() * 900000);
+}
+
+/* ---------- события ---------- */
+$("f-name").addEventListener("input", () => {
+  if (!$("f-name").dataset.touchedFolder) {
+    $("f-folder").value = slugify($("f-name").value);
+  }
+  render();
+});
+$("f-folder").addEventListener("input", () => {
+  $("f-name").dataset.touchedFolder = "1";
+  render();
+});
+["f-age", "f-seed", "f-height", "f-open", "f-swear", "f-slush",
+ "f-hair-len", "f-hair-type", "f-hair-color", "f-eye-color", "f-eye-tone",
+ "f-fig", "f-skin", "f-bust", "f-allowman", "f-about-extra", "f-app-extra"]
+  .forEach(id => {
+    const el = $(id);
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
+  });
+document.getElementById("f-traits").addEventListener("change", render);
+document.getElementById("f-extras").addEventListener("change", render);
+$("btn-seed").addEventListener("click", () => {
+  $("f-seed").value = rndSeed();
+  render();
+});
+
+$("btn-dl").addEventListener("click", () => {
+  if (!LAST) return;
+  const blob = new Blob([JSON.stringify(LAST, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "personal-" + LAST.folder + ".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+});
+
+$("btn-copy").addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(LAST, null, 2));
+    btn.textContent = "✅ Скопировано";
+  } catch (_) {
+    const ta = document.createElement("textarea");
+    ta.value = JSON.stringify(LAST, null, 2);
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    btn.textContent = "✅ Скопировано";
+  }
+  setTimeout(() => { btn.textContent = "📋 Копировать"; }, 1600);
+});
+
+/* старт: демо-имя + случайный сид */
+$("f-name").value = "";
+$("f-seed").value = rndSeed();
+render();
+</script>
+</body>
+</html>
