@@ -8,6 +8,8 @@ setlocal
 cd /d "%~dp0"
 set "MSG=%~1"
 if "%MSG%"=="" set "MSG=doc update %date%"
+rem сайт GitHub Pages открывается с index.html - держим его копией info.html
+copy /Y info.html index.html >NUL
 git add -A
 git diff --cached --quiet
 if errorlevel 1 (
