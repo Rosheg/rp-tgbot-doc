@@ -218,12 +218,28 @@
   <h3>Волосы</h3>
   <div class="grid">
     <div class="field">
+      <label for="f-hair-style">Причёска</label>
+      <select id="f-hair-style">
+        <option value="">— не указывать —</option>
+        <option value="bald">Лысая (без волос)</option>
+        <option value="braid">Косичка</option>
+        <option value="braids2">Две косички</option>
+        <option value="tails2">Два хвостика</option>
+        <option value="ponytail">Высокий хвост</option>
+        <option value="bun">Пучок</option>
+        <option value="bob">Каре</option>
+        <option value="pixie">Пикси (короткая стрижка)</option>
+      </select>
+      <div class="hint">лысая отключает длину/тип/цвет ниже</div>
+    </div>
+    <div class="field">
       <label for="f-hair-len">Длина</label>
       <select id="f-hair-len">
         <option value="">— не указывать —</option>
         <option value="s">Короткие</option>
         <option value="m">Средние (до плеч)</option>
         <option value="l">Длинные</option>
+        <option value="xl">Очень длинные (до пояса)</option>
       </select>
     </div>
     <div class="field">
@@ -233,6 +249,7 @@
         <option value="straight">Прямые</option>
         <option value="wavy">Волнистые</option>
         <option value="curly">Кудрявые</option>
+        <option value="curls">Мелкие кудри</option>
       </select>
     </div>
     <div class="field">
@@ -254,6 +271,14 @@
         <option value="brightgreen">ярко-зелёные</option>
         <option value="purple">фиолетовые</option>
         <option value="blue">синие</option>
+        <option value="turquoise">бирюзовые</option>
+        <option value="mint">мятные</option>
+        <option value="chocolate">шоколадные</option>
+        <option value="honey">медовые</option>
+        <option value="golden">золотистые</option>
+        <option value="ash">пепельные</option>
+        <option value="burgundy">бордовые</option>
+        <option value="brightred">ярко-красные</option>
       </select>
     </div>
   </div>
@@ -415,12 +440,25 @@ const HAIR_LEN = {
   "s": { ru: "короткие", en: "short" },
   "m": { ru: "средние (до плеч)", en: "shoulder-length" },
   "l": { ru: "длинные", en: "long" },
+  "xl": { ru: "очень длинные (до пояса)", en: "very long waist-length" },
 };
 const HAIR_TYPE = {
   "": { ru: "", en: "" },
   "straight": { ru: "прямые", en: "straight" },
   "wavy":     { ru: "волнистые", en: "wavy" },
   "curly":    { ru: "кудрявые", en: "curly" },
+  "curls":    { ru: "мелкие кудри", en: "tight curls" },
+};
+const HAIRSTYLE = {
+  "": { ru: "", en: "" },
+  "bald":     { ru: "лысая", en: "bald head", bald: true },
+  "braid":    { ru: "косичка", en: "a single braid" },
+  "braids2":  { ru: "две косички", en: "twin braids" },
+  "tails2":   { ru: "два хвостика", en: "twin tails" },
+  "ponytail": { ru: "высокий хвост", en: "high ponytail" },
+  "bun":      { ru: "пучок", en: "hair in a bun" },
+  "bob":      { ru: "каре", en: "bob cut" },
+  "pixie":    { ru: "пикси", en: "pixie cut" },
 };
 const HAIR_COLOR = {
   "": { ru: "", en: "" },
@@ -439,6 +477,14 @@ const HAIR_COLOR = {
   "brightgreen":  { ru: "ярко-зелёные", en: "bright green" },
   "purple":       { ru: "фиолетовые", en: "purple" },
   "blue":         { ru: "синие", en: "blue" },
+  "turquoise":    { ru: "бирюзовые", en: "turquoise" },
+  "mint":         { ru: "мятные", en: "mint green" },
+  "chocolate":    { ru: "шоколадные", en: "chocolate brown" },
+  "honey":        { ru: "медовые", en: "honey blonde" },
+  "golden":       { ru: "золотистые", en: "golden blonde" },
+  "ash":          { ru: "пепельные", en: "ash grey" },
+  "burgundy":     { ru: "бордовые", en: "burgundy" },
+  "brightred":    { ru: "ярко-красные", en: "bright red" },
 };
 const EYE_COLOR = {
   "": { ru: "", en: "" },
@@ -564,11 +610,17 @@ function appearanceRu() {
   const p = [];
   const h = parseInt($("f-height").value || "0", 10);
   if (h > 0) p.push(heightRu(h));
-  const hair = [HAIR_LEN[$("f-hair-len").value].ru,
-                HAIR_TYPE[$("f-hair-type").value].ru,
-                HAIR_COLOR[$("f-hair-color").value].ru]
-    .filter(Boolean).join(" ");
-  if (hair) p.push(hair + " волосы");
+  const st = HAIRSTYLE[$("f-hair-style").value];
+  if (st.bald) {
+    p.push(st.ru);
+  } else {
+    if (st.ru) p.push(st.ru);
+    const hair = [HAIR_LEN[$("f-hair-len").value].ru,
+                  HAIR_TYPE[$("f-hair-type").value].ru,
+                  HAIR_COLOR[$("f-hair-color").value].ru]
+      .filter(Boolean).join(" ");
+    if (hair) p.push(hair + " волосы");
+  }
   const eyes = [EYE_TONE[$("f-eye-tone").value].ru,
                 EYE_COLOR[$("f-eye-color").value].ru]
     .filter(Boolean).join(" ");
@@ -588,11 +640,17 @@ function appearanceEn() {
   const p = ["beautiful " + age + " year old woman"];
   const h = parseInt($("f-height").value || "0", 10);
   if (h > 0) p.push(heightEn(h));
-  const hair = [HAIR_LEN[$("f-hair-len").value].en,
-                HAIR_TYPE[$("f-hair-type").value].en,
-                HAIR_COLOR[$("f-hair-color").value].en]
-    .filter(Boolean).join(" ");
-  if (hair) p.push(hair + " hair");
+  const st = HAIRSTYLE[$("f-hair-style").value];
+  if (st.bald) {
+    p.push(st.en);
+  } else {
+    if (st.en) p.push(st.en);
+    const hair = [HAIR_LEN[$("f-hair-len").value].en,
+                  HAIR_TYPE[$("f-hair-type").value].en,
+                  HAIR_COLOR[$("f-hair-color").value].en]
+      .filter(Boolean).join(" ");
+    if (hair) p.push(hair + " hair");
+  }
   const eyes = [EYE_TONE[$("f-eye-tone").value].en,
                 EYE_COLOR[$("f-eye-color").value].en]
     .filter(Boolean).join(" ");
@@ -669,7 +727,8 @@ $("f-folder").addEventListener("input", () => {
   render();
 });
 ["f-age", "f-seed", "f-height", "f-open", "f-swear", "f-slush",
- "f-hair-len", "f-hair-type", "f-hair-color", "f-eye-color", "f-eye-tone",
+ "f-hair-style", "f-hair-len", "f-hair-type", "f-hair-color",
+ "f-eye-color", "f-eye-tone",
  "f-fig", "f-skin", "f-bust", "f-allowman", "f-about-extra", "f-app-extra"]
   .forEach(id => {
     const el = $(id);
