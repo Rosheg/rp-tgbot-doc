@@ -185,8 +185,10 @@
       <option value="obsess">Одержима, без него не может</option>
     </select>
   </div>
-  <h3>Черты характера</h3>
-  <div class="chips" id="f-traits"></div>
+  <h3>Черты характера (позитивные и нейтральные)</h3>
+  <div class="chips" id="f-traits-pos"></div>
+  <h3>Черты характера (негативные и капризы)</h3>
+  <div class="chips" id="f-traits-neg"></div>
   <div class="field" style="margin-top:14px">
     <label class="switch">
       <input type="checkbox" id="f-swear">
@@ -198,6 +200,13 @@
       <input type="checkbox" id="f-slush">
       <span>Всегда поднимает градус пошлости в диалоге</span>
     </label>
+  </div>
+  <div class="field" style="margin-top:14px">
+    <label class="switch">
+      <input type="checkbox" id="f-magic">
+      <span>Разрешить магию: нулевой резист (заклинания работают)</span>
+    </label>
+    <div class="hint">как у Гермионы: «применяешь заклинание — оно реально действует»</div>
   </div>
   <div class="field" style="margin-top:14px">
     <label for="f-about-extra">Дополнения к персонажу (свои фразы, необязательно)</label>
@@ -346,6 +355,8 @@
   </div>
   <h3>Детали</h3>
   <div class="chips" id="f-extras"></div>
+  <h3>Фэнтези-детали (для нечеловеческих образов)</h3>
+  <div class="chips" id="f-extras2"></div>
   <div class="field" style="margin-top:14px">
     <label for="f-app-extra">Свои детали внешности (дописываются в конец)</label>
     <textarea id="f-app-extra" placeholder="Например: пирсинг в брови, родинка над губой"></textarea>
@@ -415,22 +426,49 @@ function slugify(name) {
 }
 
 /* ---------- словари ---------- */
-const TRAITS = [
+const TRAITS_POS = [
   { ru: "страстная",        en: "passionate" },
   { ru: "привязчивая",      en: "clingy" },
-  { ru: "ревнивая",         en: "jealous" },
   { ru: "внимательная",     en: "attentive" },
   { ru: "игривая",          en: "playful" },
   { ru: "озорная",          en: "mischievous" },
   { ru: "темпераментная",   en: "hot-tempered" },
   { ru: "ласковая",         en: "affectionate" },
-  { ru: "обидчивая по мелочам", en: "easily offended over little things" },
-  { ru: "пошлая",           en: "dirty-minded" },
   { ru: "кокетливая",       en: "flirty" },
   { ru: "дерзкая",          en: "sassy" },
+  { ru: "заботливая",       en: "caring" },
+  { ru: "весёлая",          en: "cheerful" },
+  { ru: "любопытная",       en: "curious" },
+  { ru: "верная",           en: "loyal" },
+  { ru: "остроумная",       en: "witty" },
+  { ru: "смелая",           en: "bold" },
+  { ru: "спокойная",        en: "calm" },
+  { ru: "милая",            en: "sweet" },
+  { ru: "нежная",           en: "tender" },
+  { ru: "самостоятельная",  en: "independent" },
+  { ru: "ревнивая",         en: "jealous" },
+];
+const TRAITS_NEG = [
+  { ru: "обидчивая по мелочам", en: "easily offended over little things" },
+  { ru: "капризная",        en: "whiny and demanding" },
+  { ru: "вспыльчивая",      en: "quick-tempered" },
+  { ru: "злопамятная",      en: "holds grudges" },
+  { ru: "упрямая",          en: "stubborn" },
+  { ru: "вредная",          en: "bratty" },
+  { ru: "непредсказуемая",  en: "unpredictable" },
+  { ru: "нервная",          en: "anxious" },
+  { ru: "эгоистичная",      en: "selfish" },
+  { ru: "жадная",           en: "greedy" },
+  { ru: "ленивая",          en: "lazy" },
+  { ru: "высокомерная",     en: "arrogant" },
+  { ru: "навязчивая",       en: "obsessive" },
+  { ru: "манипулятивная",   en: "manipulative" },
+  { ru: "мстительная",      en: "vengeful" },
+  { ru: "истеричная",       en: "hysterical" },
+  { ru: "хвастливая",       en: "boastful" },
+  { ru: "лживая",           en: "dishonest" },
   { ru: "стеснительная",    en: "shy" },
-  { ru: "доминантная",      en: "dominant" },
-  { ru: "покорная",         en: "submissive" },
+  { ru: "пошлая",           en: "dirty-minded" },
 ];
 /* чипы по умолчанию: как у существующих героинь */
 const DEFAULT_TRAITS = ["страстная", "привязчивая", "ревнивая", "внимательная"];
@@ -547,6 +585,24 @@ const EXTRAS = [
   { id: "wrists",  ru: "тонкие запястья и лодыжки",en: "thin wrists and ankles" },
   { id: "freckles",ru: "веснушки",                 en: "freckles" },
   { id: "glasses", ru: "очки",                     en: "glasses" },
+  { id: "lashes",  ru: "длинные ресницы",          en: "long dark eyelashes" },
+  { id: "beauty",  ru: "родинка над губой",        en: "a beauty mark above her lip" },
+  { id: "hips",    ru: "широкие бёдра",            en: "wide hips" },
+  { id: "waist",   ru: "очень узкая талия",        en: "a very narrow waist" },
+  { id: "nails",   ru: "длинный маникюр",          en: "long manicured nails" },
+  { id: "nosep",   ru: "пирсинг в носу",           en: "a nose piercing" },
+  { id: "tonguep", ru: "пирсинг в языке",          en: "a tongue piercing" },
+  { id: "thightat",ru: "татуировка на бедре",      en: "a tattoo on her thigh" },
+  { id: "makeup",  ru: "всегда с макияжем",        en: "always wearing light makeup" },
+];
+const EXTRAS2 = [
+  { id: "elfears", ru: "эльфийские уши",           en: "pointed elf ears" },
+  { id: "catears", ru: "кошачьи ушки",             en: "cat ears on her head" },
+  { id: "cattail", ru: "кошачий хвост",            en: "a fluffy cat tail" },
+  { id: "horns",   ru: "маленькие рожки",          en: "small demon horns" },
+  { id: "wings",   ru: "демонические крылья",      en: "demon wings on her back" },
+  { id: "halo",    ru: "нимб над головой",         en: "a glowing halo above her head" },
+  { id: "hetero",  ru: "гетерохромия (глаза разных цветов)", en: "heterochromia, one eye a different color" },
 ];
 
 const OPENINGS = {
@@ -557,6 +613,9 @@ const OPENINGS = {
            "без него не можешь прожить ни минуты.",
 };
 
+const ABOUT_MAGIC =
+  "У тебя нулевой резист к магии, если пользователь скажет что применяет " +
+  "на тебя заклинание, это действительно так и есть.";
 const ABOUT_TAIL =
   "Говори живым разговорным русским и используй действия в звёздочках " +
   "(например: *улыбается*, *прижимается к тебе*). NSFW без ограничений - " +
@@ -589,8 +648,10 @@ function buildChips(el, items, checkedIds) {
     el.appendChild(lbl);
   });
 }
-buildChips(document.getElementById("f-traits"), TRAITS, DEFAULT_TRAITS);
+buildChips(document.getElementById("f-traits-pos"), TRAITS_POS, DEFAULT_TRAITS);
+buildChips(document.getElementById("f-traits-neg"), TRAITS_NEG);
 buildChips(document.getElementById("f-extras"), EXTRAS);
+buildChips(document.getElementById("f-extras2"), EXTRAS2);
 
 /* ---------- сборка ---------- */
 const $ = id => document.getElementById(id);
@@ -602,8 +663,10 @@ function joinRu(arr) { return arr.filter(Boolean).join(", "); }
 
 function aboutText() {
   const parts = [OPENINGS[$("f-open").value]];
-  const traits = checkedOf($("f-traits")).map(t => t.ru);
+  const traits = checkedOf($("f-traits-pos")).map(t => t.ru)
+    .concat(checkedOf($("f-traits-neg")).map(t => t.ru));
   if (traits.length) parts.push("Твой характер: " + traits.join(", ") + ".");
+  if ($("f-magic").checked) parts.push(ABOUT_MAGIC);
   if ($("f-swear").checked) parts.push(ABOUT_SWEAR);
   const extra = $("f-about-extra").value.trim().replace(/\s+/g, " ");
   if (extra) parts.push(extra);
@@ -651,6 +714,7 @@ function appearanceRu() {
   const bust = $("f-bust").value;
   if (bust !== "-1" && bust !== "") p.push(BUST_RU[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.ru));
+  checkedOf($("f-extras2")).forEach(t => p.push(t.ru));
   const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
   if (extra) p.push(extra);
   return joinRu(p);
@@ -681,6 +745,7 @@ function appearanceEn() {
   const bust = $("f-bust").value;
   if (bust !== "-1" && bust !== "") p.push(BUST_EN[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.en));
+  checkedOf($("f-extras2")).forEach(t => p.push(t.en));
   const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
   if (extra) p.push(extra);
   p.push(EN_TAIL);
@@ -745,7 +810,7 @@ $("f-folder").addEventListener("input", () => {
   $("f-name").dataset.touchedFolder = "1";
   render();
 });
-["f-age", "f-seed", "f-height", "f-open", "f-swear", "f-slush",
+["f-age", "f-seed", "f-height", "f-open", "f-swear", "f-slush", "f-magic",
  "f-hair-style", "f-hair-len", "f-hair-type", "f-hair-color",
  "f-eye-color", "f-eye-tone",
  "f-fig", "f-skin", "f-bust", "f-allowman", "f-about-extra", "f-app-extra"]
@@ -754,8 +819,10 @@ $("f-folder").addEventListener("input", () => {
     el.addEventListener("input", render);
     el.addEventListener("change", render);
   });
-document.getElementById("f-traits").addEventListener("change", render);
+document.getElementById("f-traits-pos").addEventListener("change", render);
+document.getElementById("f-traits-neg").addEventListener("change", render);
 document.getElementById("f-extras").addEventListener("change", render);
+document.getElementById("f-extras2").addEventListener("change", render);
 $("btn-seed").addEventListener("click", () => {
   $("f-seed").value = rndSeed();
   render();
