@@ -334,13 +334,13 @@
       <label for="f-bust">Размер груди</label>
       <select id="f-bust">
         <option value="-1">— не указывать —</option>
-        <option value="0">0 (маленькая)</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6 (огромная)</option>
+        <option value="0">0 — маленькая</option>
+        <option value="1">1 (A)</option>
+        <option value="2">2 (B)</option>
+        <option value="3">3 (C)</option>
+        <option value="4">4 (D, большая)</option>
+        <option value="5">5 (E, огромная)</option>
+        <option value="6">6 (F+, гигантская)</option>
       </select>
     </div>
   </div>
@@ -517,6 +517,27 @@ const SKIN = {
   "tanned": { ru: "смуглая нежная кожа", en: "soft tanned skin" },
   "pale":   { ru: "бледная кожа", en: "pale delicate skin" },
 };
+/* грудь: естественные описания - sd-cli понимает их сильно лучше,
+   чем "a size N bust" (проверено владельцем: "a size 5 bust" рисовался
+   слабо, "huge natural breasts (very large E cup)" - точно) */
+const BUST_RU = {
+  "0": "маленькая грудь",
+  "1": "маленькая грудь 1 размера",
+  "2": "грудь 2 размера",
+  "3": "грудь 3 размера",
+  "4": "большая грудь 4 размера",
+  "5": "огромная грудь 5 размера",
+  "6": "огромная грудь 6 размера",
+};
+const BUST_EN = {
+  "0": "small breasts",
+  "1": "small natural breasts (A cup)",
+  "2": "natural breasts (B cup)",
+  "3": "medium natural breasts (C cup)",
+  "4": "large natural breasts (D cup)",
+  "5": "huge natural breasts (very large E cup)",
+  "6": "massive natural breasts (huge F cup)",
+};
 const EXTRAS = [
   { id: "abs",     ru: "на животе лёгкий пресс",   en: "a hint of abs on the stomach" },
   { id: "piercing",ru: "пирсинг в пупке",          en: "navel piercing" },
@@ -628,7 +649,7 @@ function appearanceRu() {
   if (FIG[$("f-fig").value].ru) p.push(FIG[$("f-fig").value].ru);
   if (SKIN[$("f-skin").value].ru) p.push(SKIN[$("f-skin").value].ru);
   const bust = $("f-bust").value;
-  if (bust !== "-1" && bust !== "") p.push("грудь " + bust + " размера");
+  if (bust !== "-1" && bust !== "") p.push(BUST_RU[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.ru));
   const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
   if (extra) p.push(extra);
@@ -658,9 +679,7 @@ function appearanceEn() {
   if (FIG[$("f-fig").value].en) p.push(FIG[$("f-fig").value].en);
   if (SKIN[$("f-skin").value].en) p.push(SKIN[$("f-skin").value].en);
   const bust = $("f-bust").value;
-  if (bust !== "-1" && bust !== "") {
-    p.push(parseInt(bust, 10) === 0 ? "small breasts" : "a size " + bust + " bust");
-  }
+  if (bust !== "-1" && bust !== "") p.push(BUST_EN[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.en));
   const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
   if (extra) p.push(extra);
