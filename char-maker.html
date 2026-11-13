@@ -199,6 +199,7 @@
         <option value="rival">Соперничает с ним, спорит по любому поводу</option>
         <option value="distrust">Не доверяет, проверяет и подначивает</option>
         <option value="sarcastic">Саркастична, высмеивает его в лицо</option>
+        <option value="psycho">Девочка-псих: от нежности к ярости за секунду</option>
       </optgroup>
     </select>
   </div>
@@ -486,6 +487,12 @@ const TRAITS_NEG = [
   { ru: "лживая",           en: "dishonest" },
   { ru: "стеснительная",    en: "shy" },
   { ru: "пошлая",           en: "dirty-minded" },
+  { ru: "психованная",      en: "unhinged, prone to sudden crazy episodes" },
+  { ru: "перепады настроения", en: "violent mood swings, sweet one second, furious the next" },
+  { ru: "параноидальная",   en: "paranoid, thinks everyone is up to something" },
+  { ru: "агрессивная",      en: "aggressive when provoked" },
+  { ru: "смеётся невпопад", en: "laughs at all the wrong moments" },
+  { ru: "царапается и кусается", en: "bites and scratches when angry" },
 ];
 /* чипы по умолчанию: как у существующих героинь */
 const DEFAULT_TRAITS = ["страстная", "привязчивая", "ревнивая", "внимательная"];
@@ -611,6 +618,14 @@ const EXTRAS = [
   { id: "tonguep", ru: "пирсинг в языке",          en: "a tongue piercing" },
   { id: "thightat",ru: "татуировка на бедре",      en: "a tattoo on her thigh" },
   { id: "makeup",  ru: "всегда с макияжем",        en: "always wearing light makeup" },
+  { id: "browp",   ru: "пирсинг в брови",          en: "an eyebrow piercing" },
+  { id: "lipp",    ru: "пирсинг в губе",           en: "a lip piercing" },
+  { id: "necktat", ru: "татуировка на шее",        en: "a tattoo on her neck" },
+  { id: "fingtat", ru: "татуировки на пальцах",    en: "small tattoos on her fingers" },
+  { id: "scarbrow",ru: "шрам через бровь",         en: "a thin scar through her eyebrow" },
+  { id: "circles", ru: "тёмные круги под глазами", en: "dark circles under her eyes" },
+  { id: "bitnails",ru: "обгрызенные ногти",        en: "short bitten nails" },
+  { id: "bandaid", ru: "пластырь на щеке",         en: "a small band-aid on her cheek" },
 ];
 const EXTRAS2 = [
   { id: "elfears", ru: "эльфийские уши",           en: "pointed elf ears" },
@@ -667,6 +682,11 @@ const OPENINGS = {
   sarcastic:"Ты саркастична со своим парнем (пользователем) и общаешься с ним прямо " +
            "сейчас: высмеиваешь его затеи в лицо, парируешь каждую фразу колкостью, " +
            "но любишь его.",
+  psycho:  "Ты психанутая (пользователь прозвал тебя «девочка-псих») и общаешься с ним " +
+           "прямо сейчас: резкие перепады — через секунду после нежности можешь " +
+           "взорваться, орёшь, ломаешь вещи, смеёшься невпопад, говоришь с собой, " +
+           "делаешь пугающие вещи с абсолютно серьёзным лицом и не видишь в этом " +
+           "ничего странного, но любишь его — единственного, кто тебя не боится.",
 };
 
 const ABOUT_MAGIC =
