@@ -242,6 +242,23 @@
       <input type="number" id="f-height" min="0" max="220" step="1" value="0">
     </div>
   </div>
+  <h3>Типаж</h3>
+  <div class="row">
+    <div class="field">
+      <label for="f-ethnic">Национальный типаж внешности</label>
+      <select id="f-ethnic">
+        <option value="">— европейская (по умолчанию) —</option>
+        <option value="japanese">азиатская — японка</option>
+        <option value="korean">азиатская — кореянка</option>
+        <option value="chinese">азиатская — китаянка</option>
+        <option value="latina">латиноамериканская</option>
+        <option value="black">темнокожая</option>
+        <option value="indian">индийская</option>
+        <option value="mideast">ближневосточная</option>
+        <option value="mixed">смешанная</option>
+      </select>
+    </div>
+  </div>
   <h3>Волосы</h3>
   <div class="grid">
     <div class="field">
@@ -579,6 +596,19 @@ const SKIN = {
   "tanned": { ru: "смуглая нежная кожа", en: "soft tanned skin" },
   "pale":   { ru: "бледная кожа", en: "pale delicate skin" },
 };
+/* типаж/национальность: EN-якорь для фото-модели (кириллица в
+   appearance_en молча теряется - поэтому EN всегда в конце) */
+const ETHNIC = {
+  "":        { ru: "", en: "" },
+  "japanese":{ ru: "азиатские черты лица, японка", en: "japanese woman, asian features" },
+  "korean":  { ru: "азиатские черты лица, кореянка", en: "korean woman, asian features" },
+  "chinese": { ru: "азиатские черты лица, китаянка", en: "chinese woman, asian features" },
+  "latina":  { ru: "латиноамериканские черты", en: "latina woman, latina features" },
+  "black":   { ru: "темнокожая внешность", en: "black woman, dark skin, afro features" },
+  "indian":  { ru: "индийские черты", en: "indian woman, south asian features" },
+  "mideast": { ru: "ближневосточные черты", en: "middle eastern woman, middle eastern features" },
+  "mixed":   { ru: "смешанная внешность", en: "mixed race woman, mixed heritage features" },
+};
 /* грудь: естественные описания - sd-cli понимает их сильно лучше,
    чем "a size N bust" (проверено владельцем: "a size 5 bust" рисовался
    слабо, "huge natural breasts (very large E cup)" - точно) */
@@ -770,6 +800,7 @@ function appearanceRu() {
   const p = [];
   const h = parseInt($("f-height").value || "0", 10);
   if (h > 0) p.push(heightRu(h));
+  if (ETHNIC[$("f-ethnic").value].ru) p.push(ETHNIC[$("f-ethnic").value].ru);
   const st = HAIRSTYLE[$("f-hair-style").value];
   if (st.bald) {
     p.push(st.ru);
@@ -801,6 +832,7 @@ function appearanceEn() {
   const p = ["beautiful " + age + " year old woman"];
   const h = parseInt($("f-height").value || "0", 10);
   if (h > 0) p.push(heightEn(h));
+  if (ETHNIC[$("f-ethnic").value].en) p.push(ETHNIC[$("f-ethnic").value].en);
   const st = HAIRSTYLE[$("f-hair-style").value];
   if (st.bald) {
     p.push(st.en);
@@ -886,8 +918,8 @@ $("f-folder").addEventListener("input", () => {
   $("f-name").dataset.touchedFolder = "1";
   render();
 });
-["f-age", "f-seed", "f-height", "f-open", "f-swear", "f-slush", "f-magic",
- "f-hair-style", "f-hair-len", "f-hair-type", "f-hair-color",
+["f-age", "f-seed", "f-height", "f-ethnic", "f-open", "f-swear", "f-slush",
+ "f-magic", "f-hair-style", "f-hair-len", "f-hair-type", "f-hair-color",
  "f-eye-color", "f-eye-tone",
  "f-fig", "f-skin", "f-bust", "f-allowman", "f-about-extra", "f-app-extra"]
   .forEach(id => {
