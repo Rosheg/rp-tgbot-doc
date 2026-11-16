@@ -412,6 +412,23 @@
       </select>
     </div>
   </div>
+  <h3>Базовый гардероб</h3>
+  <div class="row">
+    <div class="field">
+      <label for="f-style">Что носит по умолчанию (до «переодеться»)</label>
+      <select id="f-style">
+        <option value="">— не указывать —</option>
+        <option value="casual">джинсы и уютные кофты</option>
+        <option value="elegant">элегантные платья</option>
+        <option value="sport">спортивное: топы и легинсы</option>
+        <option value="cute">милое: короткие юбочки и блузки</option>
+        <option value="goth">готическое: чёрное и чокеры</option>
+        <option value="home">домашнее: свободная футболка и шортики</option>
+        <option value="office">строгое: блузка и юбка-карандаш</option>
+      </select>
+      <div class="hint">стиль «по умолчанию» — героиня ходит в нём по сцене; кнопка «переодеться» меняет наряд под текущую сцену</div>
+    </div>
+  </div>
   <h3>Детали</h3>
   <div class="chips" id="f-extras"></div>
   <h3>Фэнтези-детали (для нечеловеческих образов)</h3>
@@ -642,6 +659,19 @@ const MAKEUP = {
   "glam":  { ru: "вечерний гламурный макияж", en: "glam evening makeup, glossy lips" },
   "goth":  { ru: "тёмный готический макияж", en: "dark gothic makeup, dark lipstick, smokey eyes" },
 };
+/* базовый гардероб: что героиня носит "по умолчанию", пока не
+   переоделась (/outfit меняет наряд под сцену). EN-якорь для фото,
+   RU-обёртка для текстовой модели */
+const WSTYLE = {
+  "":       { ru: "", en: "" },
+  "casual": { ru: "по дому ходит в джинсах и уютных кофтах", en: "usually wears casual clothes, jeans and cozy sweaters" },
+  "elegant":{ ru: "любит элегантные платья", en: "usually wears elegant dresses" },
+  "sport":  { ru: "спортивный стиль: топы и легинсы", en: "usually wears sporty clothes, tops and leggings" },
+  "cute":   { ru: "милый стиль: короткие юбочки и блузки", en: "usually wears cute outfits, short skirts and cute blouses" },
+  "goth":   { ru: "готический стиль: чёрное и чокеры", en: "usually wears gothic clothes, all black with chokers" },
+  "home":   { ru: "дома ходит в свободной футболке и шортиках", en: "usually wears an oversized t-shirt and shorts at home" },
+  "office": { ru: "строгий стиль: блузка и юбка-карандаш", en: "usually wears office style, blouse and pencil skirt" },
+};
 /* голос: русская обёртка в about_ru - влияет на манеру речи героини
    (текстовая модель), на фото не влияет */
 const VOICE = {
@@ -864,6 +894,7 @@ function appearanceRu() {
   if (FIG[$("f-fig").value].ru) p.push(FIG[$("f-fig").value].ru);
   if (SKIN[$("f-skin").value].ru) p.push(SKIN[$("f-skin").value].ru);
   if (MAKEUP[$("f-makeup").value].ru) p.push(MAKEUP[$("f-makeup").value].ru);
+  if (WSTYLE[$("f-style").value].ru) p.push(WSTYLE[$("f-style").value].ru);
   const bust = $("f-bust").value;
   if (bust !== "-1" && bust !== "") p.push(BUST_RU[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.ru));
@@ -897,6 +928,7 @@ function appearanceEn() {
   if (FIG[$("f-fig").value].en) p.push(FIG[$("f-fig").value].en);
   if (SKIN[$("f-skin").value].en) p.push(SKIN[$("f-skin").value].en);
   if (MAKEUP[$("f-makeup").value].en) p.push(MAKEUP[$("f-makeup").value].en);
+  if (WSTYLE[$("f-style").value].en) p.push(WSTYLE[$("f-style").value].en);
   const bust = $("f-bust").value;
   if (bust !== "-1" && bust !== "") p.push(BUST_EN[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.en));
@@ -968,8 +1000,8 @@ $("f-folder").addEventListener("input", () => {
 ["f-age", "f-seed", "f-height", "f-ethnic", "f-open", "f-swear", "f-slush",
  "f-magic", "f-voice", "f-hair-style", "f-hair-len", "f-hair-type",
  "f-hair-color", "f-eye-color", "f-eye-tone",
- "f-fig", "f-skin", "f-makeup", "f-bust", "f-allowman", "f-about-extra",
- "f-app-extra"]
+ "f-fig", "f-skin", "f-makeup", "f-style", "f-bust", "f-allowman",
+ "f-about-extra", "f-app-extra"]
   .forEach(id => {
     const el = $(id);
     el.addEventListener("input", render);
