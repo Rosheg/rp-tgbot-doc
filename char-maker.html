@@ -227,6 +227,19 @@
     <div class="hint">как у Гермионы: «применяешь заклинание — оно реально действует»</div>
   </div>
   <div class="field" style="margin-top:14px">
+    <label for="f-voice">Голос и манера речи</label>
+    <select id="f-voice">
+      <option value="">— не указывать —</option>
+      <option value="soft">нежный, мягкий</option>
+      <option value="velvet">низкий, бархатный</option>
+      <option value="husky">хрипловатый</option>
+      <option value="bright">звонкий, энергичный</option>
+      <option value="whisper">тихий, почти шёпот</option>
+      <option value="melodic">мелодичный, певучий</option>
+    </select>
+    <div class="hint">влияет на текст: героиня будет «звучать» в сообщениях так, как здесь выбрано</div>
+  </div>
+  <div class="field" style="margin-top:14px">
     <label for="f-about-extra">Дополнения к персонажу (свои фразы, необязательно)</label>
     <textarea id="f-about-extra" placeholder="Например: Любит дразнить своим ростом и грудью, обожает сидеть на руках."></textarea>
   </div>
@@ -372,6 +385,17 @@
         <option value="tan">с лёгким загаром</option>
         <option value="tanned">смуглая</option>
         <option value="pale">бледная</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-makeup">Макияж</label>
+      <select id="f-makeup">
+        <option value="">— не указывать —</option>
+        <option value="none">без макияжа</option>
+        <option value="light">лёгкий натуральный</option>
+        <option value="bold">яркий, красные губы</option>
+        <option value="glam">вечерний гламурный</option>
+        <option value="goth">тёмный готический</option>
       </select>
     </div>
     <div class="field">
@@ -609,6 +633,26 @@ const ETHNIC = {
   "mideast": { ru: "ближневосточные черты", en: "middle eastern woman, middle eastern features" },
   "mixed":   { ru: "смешанная внешность", en: "mixed race woman, mixed heritage features" },
 };
+/* макияж: EN-якорь для фото-модели */
+const MAKEUP = {
+  "":      { ru: "", en: "" },
+  "none":  { ru: "без макияжа", en: "no makeup, natural bare face" },
+  "light": { ru: "лёгкий натуральный макияж", en: "light natural makeup" },
+  "bold":  { ru: "яркий макияж, красные губы", en: "bold makeup, red lipstick" },
+  "glam":  { ru: "вечерний гламурный макияж", en: "glam evening makeup, glossy lips" },
+  "goth":  { ru: "тёмный готический макияж", en: "dark gothic makeup, dark lipstick, smokey eyes" },
+};
+/* голос: русская обёртка в about_ru - влияет на манеру речи героини
+   (текстовая модель), на фото не влияет */
+const VOICE = {
+  "":        { ru: "" },
+  "soft":    { ru: "говорит нежным, мягким голосом" },
+  "velvet":  { ru: "говорит низким бархатным голосом" },
+  "husky":   { ru: "у неё хрипловатый голос" },
+  "bright":  { ru: "говорит звонким, энергичным голосом" },
+  "whisper": { ru: "говорит тихо, почти шёпотом" },
+  "melodic": { ru: "у неё мелодичный, певучий голос" },
+};
 /* грудь: естественные описания - sd-cli понимает их сильно лучше,
    чем "a size N bust" (проверено владельцем: "a size 5 bust" рисовался
    слабо, "huge natural breasts (very large E cup)" - точно) */
@@ -774,6 +818,7 @@ function aboutText() {
   if (traits.length) parts.push("Твой характер: " + traits.join(", ") + ".");
   if ($("f-magic").checked) parts.push(ABOUT_MAGIC);
   if ($("f-swear").checked) parts.push(ABOUT_SWEAR);
+  if (VOICE[$("f-voice").value].ru) parts.push(VOICE[$("f-voice").value].ru);
   const extra = $("f-about-extra").value.trim().replace(/\s+/g, " ");
   if (extra) parts.push(extra);
   parts.push(ABOUT_TAIL);
@@ -818,6 +863,7 @@ function appearanceRu() {
   if (eyes) p.push(eyes + " глаза");
   if (FIG[$("f-fig").value].ru) p.push(FIG[$("f-fig").value].ru);
   if (SKIN[$("f-skin").value].ru) p.push(SKIN[$("f-skin").value].ru);
+  if (MAKEUP[$("f-makeup").value].ru) p.push(MAKEUP[$("f-makeup").value].ru);
   const bust = $("f-bust").value;
   if (bust !== "-1" && bust !== "") p.push(BUST_RU[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.ru));
@@ -850,6 +896,7 @@ function appearanceEn() {
   if (eyes) p.push(eyes + " eyes");
   if (FIG[$("f-fig").value].en) p.push(FIG[$("f-fig").value].en);
   if (SKIN[$("f-skin").value].en) p.push(SKIN[$("f-skin").value].en);
+  if (MAKEUP[$("f-makeup").value].en) p.push(MAKEUP[$("f-makeup").value].en);
   const bust = $("f-bust").value;
   if (bust !== "-1" && bust !== "") p.push(BUST_EN[bust]);
   checkedOf($("f-extras")).forEach(t => p.push(t.en));
@@ -919,9 +966,10 @@ $("f-folder").addEventListener("input", () => {
   render();
 });
 ["f-age", "f-seed", "f-height", "f-ethnic", "f-open", "f-swear", "f-slush",
- "f-magic", "f-hair-style", "f-hair-len", "f-hair-type", "f-hair-color",
- "f-eye-color", "f-eye-tone",
- "f-fig", "f-skin", "f-bust", "f-allowman", "f-about-extra", "f-app-extra"]
+ "f-magic", "f-voice", "f-hair-style", "f-hair-len", "f-hair-type",
+ "f-hair-color", "f-eye-color", "f-eye-tone",
+ "f-fig", "f-skin", "f-makeup", "f-bust", "f-allowman", "f-about-extra",
+ "f-app-extra"]
   .forEach(id => {
     const el = $(id);
     el.addEventListener("input", render);
