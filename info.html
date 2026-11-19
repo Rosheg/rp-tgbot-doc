@@ -669,6 +669,11 @@
 <section id="history">
   <h2><span class="num">10</span>История правок <span class="muted">(кратко)</span></h2>
   <ul>
+    <li><b>19.11:</b> <code>start.bat</code> после разгрузки кода: проверка
+        удалённого сервера картинок теперь читает
+        <code>SD_API_URL</code>/<code>SD_API_TOKEN</code> из
+        <code>f_import/config.py</code> (раньше — из <code>bot.py</code>,
+        из-за чего статус в меню всегда был «не задан»).</li>
     <li><b>19.11:</b> разгрузка <code>bot.py</code>: параметры, промпты и
         стабильные утилиты вынесены в пакет <code>f_import/</code>
         (<code>config</code>, <code>people</code>, <code>state</code>,
