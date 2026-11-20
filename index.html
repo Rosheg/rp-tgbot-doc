@@ -469,10 +469,17 @@
       <li><b>промпт генерации:</b> позитив «solo, single person composition…
           absolutely no men anywhere», расширенный негатив: man, male torso,
           male legs, male arms, standing man, second person, couple,
-          extra person, cropped body at the edge of frame;</li>
+          extra person, cropped body at the edge of frame; с 20.11 ещё и
+          futanari, shemale, dickgirl, hermaphrodite, penis, male genitalia,
+          «woman with a penis» — вторая <b>женщина</b> в кадре допустима,
+          но только с женской анатомией;</li>
       <li><b>кодовая чистка</b> перед генерацией: из промпта вычесываются все
           мужские слова (границы слов, «her» не задевается). Сцены старых
-          сессий, где мужчина уже упомянут, чистятся тем же правилом.</li>
+          сессий, где мужчина уже упомянут, чистятся тем же правилом.
+          С 20.11 связки «предлог + man» убираются целиком, а не оставляют
+          обрывок: <code>in front of a man</code> → <code>in front of the
+          camera</code>, <code>with a man</code> → пусто. Раньше хвост
+          «in front of a» заставлял модель дорисовывать второго человека.</li>
     </ol>
     <span class="muted">Энкодер генератора — LLM (Qwen), не CLIP: токен-весы вида
     <code>(man:1.5)</code> там НЕ работают, работают только естественные слова.</span>
@@ -672,6 +679,17 @@
 <section id="history">
   <h2><span class="num">10</span>История правок <span class="muted">(кратко)</span></h2>
   <ul>
+    <li><b>20.11:</b> у второй женщины в кадре больше не бывает члена.
+        Сцена «woman kneeling in front of a man…» после вычистки слова
+        <code>man</code> оставляла обрывок «in front of a» — модель
+        дорисовывала на пропуске второго человека, а из-за запрета на
+        мужчин это была женщина с членом. Теперь связки «предлог + man»
+        убираются целиком (<code>in front of a man</code> →
+        <code>in front of the camera</code>), а в негатив добавлены
+        <code>futanari</code>, <code>shemale</code>, <code>dickgirl</code>,
+        <code>hermaphrodite</code>, <code>penis</code>,
+        <code>male genitalia</code>, «woman with a penis». Подруга
+        в кадре остаётся допустимой — запрещён только член.</li>
     <li><b>20.11:</b> в сводке «ВСЁ ГОТОВО» больше нет фразы «приходят
         сами по мере диалога» — при выключенных авто-кадрах там теперь
         «по кнопке 🖼 или команде /kart».</li>
