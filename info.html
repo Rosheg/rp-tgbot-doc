@@ -672,6 +672,11 @@
 <section id="history">
   <h2><span class="num">10</span>История правок <span class="muted">(кратко)</span></h2>
   <ul>
+    <li><b>20.11:</b> <code>start.bat</code>, пункт «Остановить бот» больше
+        не убивает Ollama: сервис остаётся работать, а все модели
+        выгружаются из VRAM через API (<code>/api/ps</code> +
+        <code>keep_alive=0</code>). «Перезапустить бот» модель не трогает —
+        она остаётся в памяти.</li>
     <li><b>20.11:</b> в <code>/help</code> копируются только команды
         с аргументами: <code>/custom</code>, <code>/kick</code> и примеры
         (<code>/custom грудь</code>, <code>/outfit вечернее платье</code>).
