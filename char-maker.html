@@ -3,1052 +3,2259 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>rp-chat-tgbot — конструктор персонажей</title>
 <style>
   :root {
-    --bg: #16171b;
-    --card: #1e2026;
-    --card2: #23252c;
-    --text: #e6e6e9;
-    --muted: #9aa0ab;
-    --accent: #e05555;
-    --accent2: #7aa2f7;
-    --ok: #7dcf9a;
-    --warn: #e0b155;
-    --border: #33363f;
+    --bg: #111217;
+    --bg-soft: #171920;
+    --card: #1c1f27;
+    --card-2: #232731;
+    --card-3: #2a2f3b;
+    --text: #f0f1f5;
+    --muted: #a1a8b7;
+    --faint: #717989;
+    --accent: #ee6f73;
+    --accent-soft: rgba(238, 111, 115, .14);
+    --violet: #a897ff;
+    --violet-soft: rgba(168, 151, 255, .13);
+    --blue: #7fb4ff;
+    --ok: #83d5a4;
+    --warn: #e7bc6a;
+    --danger: #ff8585;
+    --border: #303541;
+    --shadow: 0 18px 55px rgba(0, 0, 0, .22);
+    --radius: 16px;
   }
+
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
   body {
-    margin: 0; padding: 0 0 80px;
-    background: var(--bg); color: var(--text);
-    font: 16px/1.65 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 12% -5%, rgba(238, 111, 115, .12), transparent 28rem),
+      radial-gradient(circle at 92% 8%, rgba(168, 151, 255, .10), transparent 30rem),
+      var(--bg);
+    font: 15px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 0 22px; }
+  button, input, select, textarea { font: inherit; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  button { color: inherit; }
+  a { color: var(--blue); }
+  ::selection { background: rgba(238, 111, 115, .3); }
 
-  header.hero {
-    padding: 42px 0 26px;
+  .app { width: min(1240px, calc(100% - 40px)); margin: 0 auto; padding: 34px 0 60px; }
+  .hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 28px;
+    margin-bottom: 24px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: currentColor; }
+  h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.15; letter-spacing: -.03em; }
+  h1 span { color: var(--accent); }
+  .hero p { max-width: 680px; margin: 12px 0 0; color: var(--muted); font-size: 15px; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 9px 16px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--card-2);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color .16s, background .16s, transform .16s, opacity .16s;
+  }
+  .btn:hover { border-color: #4a5263; background: var(--card-3); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { border-color: var(--accent); background: var(--accent); color: #171117; }
+  .btn.primary:hover { background: #f47e82; border-color: #f47e82; }
+  .btn.violet { border-color: var(--violet); background: var(--violet); color: #171321; }
+  .btn.ghost { background: transparent; }
+  .btn.small { min-height: 34px; padding: 6px 11px; font-size: 13px; }
+  .btn:disabled { opacity: .42; cursor: not-allowed; transform: none; }
+  .btn:focus-visible, .nav-btn:focus-visible, .preset:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 3px;
+  }
+
+  .save-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 34px;
+    margin-bottom: 12px;
+    color: var(--faint);
+    font-size: 13px;
+  }
+  .save-state { display: inline-flex; align-items: center; gap: 8px; }
+  .save-state::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 4px rgba(131, 213, 164, .08);
+  }
+  .save-state.error::before { background: var(--warn); }
+  .text-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--blue);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .text-button:hover { color: #a9ccff; }
+
+  .step-nav {
+    position: sticky;
+    top: 10px;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    padding: 7px;
+    margin-bottom: 18px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(23, 25, 32, .92);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
+  }
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .nav-btn .nav-num { color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .nav-btn:hover { background: var(--card-2); color: var(--text); }
+  .nav-btn.active { border-color: rgba(238, 111, 115, .28); background: var(--accent-soft); color: var(--text); }
+  .nav-btn.active .nav-num { color: var(--accent); }
+
+  .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
+  .editor { min-width: 0; }
+  .panel {
+    padding: 26px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255,255,255,.018), transparent 45%), var(--card);
+    box-shadow: var(--shadow);
+  }
+  .panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 20px;
+    margin-bottom: 22px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 30px;
   }
-  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: .3px; }
-  header.hero h1 .accent { color: var(--accent); }
-  header.hero .sub { color: var(--muted); font-size: 15px; }
-  header.hero .sub a { color: var(--accent2); text-decoration: none; }
-  header.hero .sub a:hover { text-decoration: underline; }
+  .panel-title { display: flex; align-items: flex-start; gap: 13px; }
+  .step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 1px solid rgba(238, 111, 115, .3);
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .panel h2 { margin: 0; font-size: 21px; line-height: 1.3; letter-spacing: -.01em; }
+  .panel-head p { margin: 5px 0 0; color: var(--muted); font-size: 13.5px; }
+  .panel-actions { display: flex; justify-content: space-between; gap: 12px; padding-top: 22px; margin-top: 24px; border-top: 1px solid var(--border); }
+  .panel-actions .right { margin-left: auto; }
 
-  section {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 14px; padding: 26px 28px; margin: 0 0 26px;
-  }
-  section h2 { margin: 0 0 16px; font-size: 21px; }
-  section h2 .num { color: var(--accent); margin-right: 8px; }
-  section h3 { margin: 18px 0 8px; font-size: 15px; text-transform: uppercase;
-               letter-spacing: 1px; color: var(--muted); }
-  p { margin: 8px 0; }
-  code {
-    background: var(--card2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 1px 7px; font-size: 14px;
-    font-family: Consolas, "Cascadia Mono", monospace; color: var(--accent2);
-  }
-  ul { margin: 8px 0; padding-left: 24px; }
-  li { margin: 5px 0; }
-
-  /* форма */
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
-  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
-  .field label {
-    display: block; font-size: 13.5px; color: var(--muted);
-    margin: 0 0 4px 2px;
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+  .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .span-2 { grid-column: span 2; }
+  .field { min-width: 0; }
+  .field > label, .field-label {
+    display: block;
+    margin: 0 0 6px 2px;
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 650;
+    letter-spacing: .01em;
   }
   input[type=text], input[type=number], select, textarea {
-    width: 100%; background: var(--card2); color: var(--text);
-    border: 1px solid var(--border); border-radius: 9px;
-    padding: 9px 12px; font: inherit; outline: none;
-  }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent2); }
-  textarea { min-height: 70px; resize: vertical; }
-  .field .hint { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
-
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip { position: relative; }
-  .chip input { position: absolute; opacity: 0; }
-  .chip span {
-    display: inline-block; padding: 6px 14px; cursor: pointer;
-    border: 1px solid var(--border); border-radius: 999px;
-    background: var(--card2); color: var(--muted);
-    font-size: 14px; user-select: none; transition: .15s;
-  }
-  .chip input:checked + span {
-    border-color: var(--accent); background: rgba(224,85,85,.14);
+    width: 100%;
+    min-height: 43px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    background: var(--bg-soft);
     color: var(--text);
+    transition: border-color .16s, box-shadow .16s;
   }
-  .chip input:focus-visible + span { outline: 2px solid var(--accent2); }
-
-  .switch { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-  .switch input { width: 18px; height: 18px; accent-color: var(--accent); }
-
-  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .row .field { flex: 1 1 140px; }
-
-  /* кнопки */
-  .btn {
-    display: inline-block; padding: 10px 20px; border-radius: 10px;
-    border: 1px solid var(--border); background: var(--card2);
-    color: var(--text); font: inherit; font-size: 15px; cursor: pointer;
-    text-decoration: none; transition: .15s;
+  input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus {
+    border-color: var(--violet);
+    box-shadow: 0 0 0 3px rgba(168, 151, 255, .10);
   }
-  .btn:hover { border-color: var(--muted); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn.primary:hover { filter: brightness(1.1); }
-  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  input::placeholder, textarea::placeholder { color: #626a79; }
+  textarea { min-height: 84px; resize: vertical; }
+  textarea.tall { min-height: 126px; }
+  .hint { margin: 5px 2px 0; color: var(--faint); font-size: 12px; }
+  .raw-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .raw-actions .hint { margin: 0; }
+  .inline { display: flex; gap: 8px; align-items: center; }
+  .inline > :first-child { flex: 1; }
 
-  /* предпросмотр JSON */
-  pre.json {
-    background: #131418; border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px 18px; overflow-x: auto; margin: 12px 0 0;
-    font: 13.5px/1.55 Consolas, "Cascadia Mono", monospace;
-    white-space: pre; max-height: 460px; overflow-y: auto;
+  .subsection { margin-top: 26px; }
+  .subsection:first-child { margin-top: 0; }
+  .subsection-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
+  h3 { margin: 0; color: var(--muted); font-size: 12px; letter-spacing: .13em; text-transform: uppercase; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { position: relative; display: inline-flex; }
+  .chip input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .chip span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: .15s;
   }
-  pre.json .k { color: var(--accent2); }
-  pre.json .s { color: var(--ok); }
-  pre.json .n { color: var(--warn); }
-  pre.json .b { color: var(--accent); }
-  .filename { color: var(--muted); font-size: 14px; margin-top: 10px; }
-  .filename b { color: var(--text); }
+  .chip:hover span { border-color: #4a5263; color: var(--text); }
+  .chip input:checked + span { border-color: rgba(238, 111, 115, .48); background: var(--accent-soft); color: var(--text); }
+  .chip input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .switch-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 13px 14px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: var(--bg-soft);
+  }
+  .switch-row + .switch-row { margin-top: 9px; }
+  .switch-copy strong { display: block; font-size: 13.5px; font-weight: 650; }
+  .switch-copy span { display: block; margin-top: 2px; color: var(--faint); font-size: 12px; }
+  .switch {
+    position: relative;
+    width: 40px;
+    height: 23px;
+    flex: 0 0 40px;
+    margin-top: 2px;
+  }
+  .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .switch-track {
+    position: absolute;
+    inset: 0;
+    border: 1px solid #454c5b;
+    border-radius: 999px;
+    background: #2b303b;
+    cursor: pointer;
+    transition: .16s;
+  }
+  .switch-track::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #8e96a5;
+    transition: .16s;
+  }
+  .switch input:checked + .switch-track { border-color: var(--accent); background: rgba(238, 111, 115, .25); }
+  .switch input:checked + .switch-track::after { left: 20px; background: var(--accent); }
+  .switch input:focus-visible + .switch-track { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+  .range-value {
+    display: inline-flex;
+    min-width: 28px;
+    justify-content: center;
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+
+  .preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .preset {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 150px;
+    padding: 17px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg-soft);
+    text-align: left;
+    cursor: pointer;
+    transition: .16s;
+  }
+  .preset::after {
+    content: "";
+    position: absolute;
+    right: -36px;
+    bottom: -48px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--preset-color, var(--accent));
+    opacity: .07;
+    filter: blur(2px);
+  }
+  .preset:hover { border-color: #4b5364; transform: translateY(-1px); }
+  .preset.active { border-color: var(--preset-color, var(--accent)); background: linear-gradient(135deg, rgba(255,255,255,.025), transparent), var(--bg-soft); }
+  .preset-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 29px;
+    height: 29px;
+    margin-bottom: 12px;
+    border: 1px solid color-mix(in srgb, var(--preset-color, var(--accent)) 40%, transparent);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--preset-color, var(--accent)) 10%, transparent);
+    color: var(--preset-color, var(--accent));
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .preset strong { font-size: 15px; }
+  .preset p { margin: 5px 0 12px; color: var(--muted); font-size: 12.5px; }
+  .preset-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
+  .preset-tags span { padding: 2px 7px; border-radius: 5px; background: var(--card-2); color: var(--faint); font-size: 10.5px; }
 
   .note {
-    border-left: 3px solid var(--warn); background: rgba(224,177,85,.08);
-    padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 12px 0;
-    font-size: 14.5px;
+    padding: 12px 14px;
+    margin-top: 16px;
+    border: 1px solid rgba(127, 180, 255, .18);
+    border-radius: 10px;
+    background: rgba(127, 180, 255, .06);
+    color: #b9cce5;
+    font-size: 12.5px;
   }
-  .steps { counter-reset: step; padding-left: 0; list-style: none; }
-  .steps li { counter-increment: step; padding-left: 40px; position: relative; }
-  .steps li::before {
-    content: counter(step); position: absolute; left: 0; top: 1px;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--card2); border: 1px solid var(--border);
-    color: var(--accent2); font-size: 13px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center;
+  .note.warn { border-color: rgba(231, 188, 106, .22); background: rgba(231, 188, 106, .06); color: #d6c39b; }
+
+  details.advanced { margin-top: 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-soft); }
+  details.advanced > summary { padding: 13px 15px; cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 650; }
+  details.advanced[open] > summary { border-bottom: 1px solid var(--border); color: var(--text); }
+  .advanced-body { padding: 16px; }
+  .advanced-body .switch-row + .field, .advanced-body .field + .field { margin-top: 15px; }
+
+  pre.json {
+    max-height: 520px;
+    padding: 17px;
+    overflow: auto;
+    margin: 12px 0 0;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: #101218;
+    color: #cfd6e4;
+    font: 12.5px/1.6 Consolas, "Cascadia Mono", monospace;
+    white-space: pre;
+    tab-size: 2;
   }
-  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 40px; }
-  footer a { color: var(--accent2); text-decoration: none; }
+  .filename { margin-top: 10px; color: var(--faint); font-size: 13px; }
+  .filename b { color: var(--text); font-family: Consolas, "Cascadia Mono", monospace; font-weight: 600; }
+  .export-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+  .preview-column { position: sticky; top: 82px; display: grid; gap: 14px; }
+  .preview-card, .validation-card {
+    padding: 19px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(28, 31, 39, .94);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(12px);
+  }
+  .preview-label { margin-bottom: 12px; color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+  .character-name { margin: 0; font-size: 22px; line-height: 1.25; overflow-wrap: anywhere; }
+  .character-meta { margin: 5px 0 13px; color: var(--muted); font-size: 12.5px; }
+  .archetype-badge { display: inline-flex; padding: 3px 9px; border: 1px solid rgba(168, 151, 255, .25); border-radius: 999px; background: var(--violet-soft); color: #c6bbff; font-size: 11px; }
+  .preview-block { padding-top: 13px; margin-top: 13px; border-top: 1px solid var(--border); }
+  .preview-block h3 { margin-bottom: 5px; font-size: 10.5px; }
+  .preview-block p { margin: 0; color: #c3c9d4; font-size: 12.5px; overflow-wrap: anywhere; }
+  .preview-block .muted { color: var(--faint); }
+  .voice-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .voice-pill { padding: 3px 8px; border-radius: 6px; background: var(--card-2); color: #c9d1df; font-size: 11px; }
+
+  .validation-card { box-shadow: none; }
+  .validation-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+  .validation-head strong { font-size: 13px; }
+  .validation-count { color: var(--faint); font-size: 11px; }
+  .validation ul { display: grid; gap: 7px; padding: 0; margin: 0; list-style: none; }
+  .validation li { position: relative; padding-left: 17px; color: var(--muted); font-size: 12px; }
+  .validation li::before { content: ""; position: absolute; top: 8px; left: 1px; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .validation li.warning::before { background: var(--warn); }
+  .validation li.error::before { background: var(--danger); }
+  .validation.ok li { color: #a9c9b5; }
+
+  .toast {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 100;
+    max-width: min(390px, calc(100% - 44px));
+    padding: 12px 16px;
+    border: 1px solid rgba(131, 213, 164, .3);
+    border-radius: 11px;
+    background: #202a24;
+    color: #d9f2e2;
+    box-shadow: var(--shadow);
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: .18s;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { border-color: rgba(255, 133, 133, .32); background: #302124; color: #ffd7d7; }
+
+  footer { margin-top: 28px; color: var(--faint); text-align: center; font-size: 12px; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 1040px) {
+    .workspace { grid-template-columns: minmax(0, 1fr) 300px; }
+    .step-nav { overflow-x: auto; grid-template-columns: repeat(6, minmax(120px, 1fr)); }
+    .nav-btn { justify-content: flex-start; }
+  }
+  @media (max-width: 820px) {
+    .app { width: min(100% - 28px, 720px); padding-top: 24px; }
+    .hero { align-items: flex-start; flex-direction: column; gap: 18px; }
+    .workspace { grid-template-columns: 1fr; }
+    .preview-column { position: static; grid-row: 1; grid-template-columns: 1fr 1fr; }
+    .panel { padding: 20px; }
+    .step-nav { top: 6px; }
+  }
+  @media (max-width: 580px) {
+    .app { width: min(100% - 20px, 520px); }
+    .grid, .grid.three, .preset-grid { grid-template-columns: 1fr; }
+    .span-2 { grid-column: auto; }
+    .preview-column { grid-template-columns: 1fr; }
+    .panel { padding: 17px; border-radius: 13px; }
+    .panel-head { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .panel-head .btn { align-self: flex-end; }
+    .panel-actions { flex-wrap: wrap; }
+    .hero-actions { width: 100%; }
+    .hero-actions .btn { flex: 1; }
+    .save-line { align-items: flex-start; }
+    .step-nav { margin-inline: -3px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="app">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Character Studio</div>
+      <h1>Конструктор <span>персонажей</span></h1>
+      <p>Соберите героиню из пресета или с нуля. Результат — готовый <b>personal-&lt;имя&gt;.json</b>, совместимый с ботом.</p>
+    </div>
+    <div class="hero-actions">
+      <button class="btn" type="button" id="btn-import">Импорт JSON</button>
+      <input type="file" id="file-import" accept=".json,application/json" hidden>
+      <button class="btn ghost" type="button" id="btn-reset">Очистить</button>
+    </div>
+  </header>
 
-<header class="hero">
-  <h1>Конструктор <span class="accent">персонажей</span></h1>
-  <div class="sub">
-    Собирает готовый <code>personal-&lt;имя&gt;.json</code> для бота
-    — без правки кода и JSON вручную. • <a href="index.html">← документация бота</a>
+  <div class="save-line">
+    <span class="save-state" id="save-status">Черновик сохраняется в этом браузере</span>
+    <button class="text-button" type="button" id="btn-go-export">К готовому JSON →</button>
   </div>
-</header>
 
-<!-- ===================== ОСНОВА ===================== -->
-<section>
-  <h2><span class="num">1</span>Основа</h2>
-  <div class="grid">
-    <div class="field">
-      <label for="f-name">Имя героини (по-русски)</label>
-      <input type="text" id="f-name" placeholder="Например: Виктора" value="">
-      <div class="hint">как в диалогах — «Виктора: …»</div>
-    </div>
-    <div class="field">
-      <label for="f-folder">Папка (латиницей, = имя файла)</label>
-      <input type="text" id="f-folder" placeholder="viktoria">
-      <div class="hint">заполняется само из имени, можно поправить: <code>personal-<span id="fn">…</span>.json</code></div>
-    </div>
-    <div class="field">
-      <label for="f-age">Возраст (18+)</label>
-      <input type="number" id="f-age" min="18" max="99" value="24">
-    </div>
-    <div class="field">
-      <label for="f-seed">Seed (сид внешности)</label>
-      <div class="row">
-        <input type="number" id="f-seed" min="100000" max="999999" value="0" style="flex:1">
-        <button class="btn" type="button" id="btn-seed">🎲 Случайный</button>
-      </div>
-      <div class="hint">один и тот же сид = одна и та же внешность на всех генерациях</div>
-    </div>
-  </div>
-</section>
+  <nav class="step-nav" aria-label="Разделы конструктора">
+    <button class="nav-btn active" type="button" data-target="preset" aria-current="step"><span class="nav-num">01</span>Шаблон</button>
+    <button class="nav-btn" type="button" data-target="identity"><span class="nav-num">02</span>Личность</button>
+    <button class="nav-btn" type="button" data-target="bio"><span class="nav-num">03</span>Биография</button>
+    <button class="nav-btn" type="button" data-target="speech"><span class="nav-num">04</span>Речь и голос</button>
+    <button class="nav-btn" type="button" data-target="appearance"><span class="nav-num">05</span>Внешность</button>
+    <button class="nav-btn" type="button" data-target="export"><span class="nav-num">06</span>Результат</button>
+  </nav>
 
-<!-- ===================== ХАРАКТЕР ===================== -->
-<section>
-  <h2><span class="num">2</span>Характер и манера общения</h2>
-  <div class="field" style="margin-bottom:14px">
-    <label for="f-open">Как она относится к пользователю (начало описания)</label>
-    <select id="f-open">
-      <optgroup label="Тёплое отношение">
-        <option value="love">Влюблена в своего парня</option>
-        <option value="worship">Боготворит, «единственный навсегда»</option>
-        <option value="obsess">Одержима, без него не может</option>
-        <option value="lust">Вечно хочет его, мысли только о нём</option>
-        <option value="shy">Сильно влюблена, но стесняется показать</option>
-        <option value="playful">Влюблена и вечно дразнит, играет</option>
-        <option value="calm">Любит спокойно и уверенно, «своя»</option>
-        <option value="mistress">Главная в отношениях, он слушается</option>
-      </optgroup>
-      <optgroup label="Сложный характер (но любит его)">
-        <option value="cold">Холодна и колюча, делает вид, что он безразличен</option>
-        <option value="bratty">Вечно недовольна, огрызается и придирается</option>
-        <option value="contempt">Смотрит с презрением, будто вечно недовольна</option>
-        <option value="haughty">Высокомерна, считает себя лучше него</option>
-        <option value="resentful">Держит на него обиду, припоминает старое</option>
-        <option value="rival">Соперничает с ним, спорит по любому поводу</option>
-        <option value="distrust">Не доверяет, проверяет и подначивает</option>
-        <option value="sarcastic">Саркастична, высмеивает его в лицо</option>
-        <option value="psycho">Девочка-псих: от нежности к ярости за секунду</option>
-      </optgroup>
-    </select>
-  </div>
-  <h3>Черты характера (позитивные и нейтральные)</h3>
-  <div class="chips" id="f-traits-pos"></div>
-  <h3>Черты характера (негативные и капризы)</h3>
-  <div class="chips" id="f-traits-neg"></div>
-  <div class="field" style="margin-top:14px">
-    <label class="switch">
-      <input type="checkbox" id="f-swear">
-      <span>Иногда бывает грубой, мат разрешён</span>
-    </label>
-  </div>
-  <div class="field" style="margin-top:14px">
-    <label class="switch">
-      <input type="checkbox" id="f-slush">
-      <span>Всегда поднимает градус пошлости в диалоге</span>
-    </label>
-  </div>
-  <div class="field" style="margin-top:14px">
-    <label class="switch">
-      <input type="checkbox" id="f-magic">
-      <span>Разрешить магию: нулевой резист (заклинания работают)</span>
-    </label>
-    <div class="hint">как у Гермионы: «применяешь заклинание — оно реально действует»</div>
-  </div>
-  <div class="field" style="margin-top:14px">
-    <label for="f-voice">Голос и манера речи</label>
-    <select id="f-voice">
-      <option value="">— не указывать —</option>
-      <option value="soft">нежный, мягкий</option>
-      <option value="velvet">низкий, бархатный</option>
-      <option value="husky">хрипловатый</option>
-      <option value="bright">звонкий, энергичный</option>
-      <option value="whisper">тихий, почти шёпот</option>
-      <option value="melodic">мелодичный, певучий</option>
-    </select>
-    <div class="hint">влияет на текст: героиня будет «звучать» в сообщениях так, как здесь выбрано</div>
-  </div>
-  <div class="field" style="margin-top:14px">
-    <label for="f-about-extra">Дополнения к персонажу (свои фразы, необязательно)</label>
-    <textarea id="f-about-extra" placeholder="Например: Любит дразнить своим ростом и грудью, обожает сидеть на руках."></textarea>
-  </div>
-</section>
+  <div class="workspace">
+    <main class="editor">
+      <form id="character-form" autocomplete="off">
+        <input type="hidden" name="preset" id="f-preset" value="blank">
 
-<!-- ===================== ВНЕШНОСТЬ ===================== -->
-<section>
-  <h2><span class="num">3</span>Внешность</h2>
-  <h3>Рост</h3>
-  <div class="row">
-    <div class="field" style="max-width:170px">
-      <label for="f-height">см (0 — не указывать)</label>
-      <input type="number" id="f-height" min="0" max="220" step="1" value="0">
-    </div>
-  </div>
-  <h3>Типаж</h3>
-  <div class="row">
-    <div class="field">
-      <label for="f-ethnic">Национальный типаж внешности</label>
-      <select id="f-ethnic">
-        <option value="">— европейская (по умолчанию) —</option>
-        <option value="japanese">азиатская — японка</option>
-        <option value="korean">азиатская — кореянка</option>
-        <option value="chinese">азиатская — китаянка</option>
-        <option value="latina">латиноамериканская</option>
-        <option value="black">темнокожая</option>
-        <option value="indian">индийская</option>
-        <option value="mideast">ближневосточная</option>
-        <option value="mixed">смешанная</option>
-      </select>
-    </div>
-  </div>
-  <h3>Волосы</h3>
-  <div class="grid">
-    <div class="field">
-      <label for="f-hair-style">Причёска</label>
-      <select id="f-hair-style">
-        <option value="">— не указывать —</option>
-        <option value="bald">Лысая (без волос)</option>
-        <option value="braid">Косичка</option>
-        <option value="braids2">Две косички</option>
-        <option value="tails2">Два хвостика</option>
-        <option value="ponytail">Высокий хвост</option>
-        <option value="bun">Пучок</option>
-        <option value="bob">Каре</option>
-        <option value="pixie">Пикси (короткая стрижка)</option>
-      </select>
-      <div class="hint">лысая отключает длину/тип/цвет ниже</div>
-    </div>
-    <div class="field">
-      <label for="f-hair-len">Длина</label>
-      <select id="f-hair-len">
-        <option value="">— не указывать —</option>
-        <option value="s">Короткие</option>
-        <option value="m">Средние (до плеч)</option>
-        <option value="l">Длинные</option>
-        <option value="xl">Очень длинные (до пояса)</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="f-hair-type">Тип</label>
-      <select id="f-hair-type">
-        <option value="">— не указывать —</option>
-        <option value="straight">Прямые</option>
-        <option value="wavy">Волнистые</option>
-        <option value="curly">Кудрявые</option>
-        <option value="curls">Мелкие кудри</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="f-hair-color">Цвет</label>
-      <select id="f-hair-color">
-        <option value="">— не указывать —</option>
-        <option value="black">чёрные</option>
-        <option value="chestnut">каштановые</option>
-        <option value="darkchestnut">тёмно-каштановые</option>
-        <option value="brown">русые</option>
-        <option value="lightbrown">светло-русые</option>
-        <option value="blonde">блондинистые</option>
-        <option value="platinum">платиновые</option>
-        <option value="red">рыжие</option>
-        <option value="pink">розовые</option>
-        <option value="white">белые</option>
-        <option value="silver">серебристые</option>
-        <option value="green">зелёные</option>
-        <option value="brightgreen">ярко-зелёные</option>
-        <option value="purple">фиолетовые</option>
-        <option value="blue">синие</option>
-        <option value="turquoise">бирюзовые</option>
-        <option value="mint">мятные</option>
-        <option value="chocolate">шоколадные</option>
-        <option value="honey">медовые</option>
-        <option value="golden">золотистые</option>
-        <option value="ash">пепельные</option>
-        <option value="burgundy">бордовые</option>
-        <option value="brightred">ярко-красные</option>
-      </select>
-    </div>
-  </div>
-  <h3>Глаза</h3>
-  <div class="grid">
-    <div class="field">
-      <label for="f-eye-color">Цвет</label>
-      <select id="f-eye-color">
-        <option value="">— не указывать —</option>
-        <option value="brown">карие</option>
-        <option value="blue">голубые</option>
-        <option value="green">зелёные</option>
-        <option value="grey">серые</option>
-        <option value="hazel">ореховые</option>
-        <option value="amber">янтарные</option>
-        <option value="violet">фиолетовые</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="f-eye-tone">Оттенок</label>
-      <select id="f-eye-tone">
-        <option value="">— обычный —</option>
-        <option value="warm">тёплый</option>
-        <option value="icy">холодный</option>
-        <option value="bright">яркий</option>
-      </select>
-    </div>
-  </div>
-  <h3>Фигура и кожа</h3>
-  <div class="grid">
-    <div class="field">
-      <label for="f-fig">Фигура</label>
-      <select id="f-fig">
-        <option value="">— не указывать —</option>
-        <option value="slim">стройная</option>
-        <option value="petite">миниатюрная</option>
-        <option value="curvy">пышная</option>
-        <option value="sport">спортивная</option>
-        <option value="volup">аппетитная</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="f-skin">Кожа</label>
-      <select id="f-skin">
-        <option value="">— не указывать —</option>
-        <option value="fair">нежная светлая</option>
-        <option value="tan">с лёгким загаром</option>
-        <option value="tanned">смуглая</option>
-        <option value="pale">бледная</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="f-makeup">Макияж</label>
-      <select id="f-makeup">
-        <option value="">— не указывать —</option>
-        <option value="none">без макияжа</option>
-        <option value="light">лёгкий натуральный</option>
-        <option value="bold">яркий, красные губы</option>
-        <option value="glam">вечерний гламурный</option>
-        <option value="goth">тёмный готический</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="f-bust">Размер груди</label>
-      <select id="f-bust">
-        <option value="-1">— не указывать —</option>
-        <option value="0">0 — маленькая</option>
-        <option value="1">1 (A)</option>
-        <option value="2">2 (B)</option>
-        <option value="3">3 (C)</option>
-        <option value="4">4 (D, большая)</option>
-        <option value="5">5 (E, огромная)</option>
-        <option value="6">6 (F+, гигантская)</option>
-      </select>
-    </div>
-  </div>
-  <h3>Базовый гардероб</h3>
-  <div class="row">
-    <div class="field">
-      <label for="f-style">Что носит по умолчанию (до «переодеться»)</label>
-      <select id="f-style">
-        <option value="">— не указывать —</option>
-        <option value="casual">джинсы и уютные кофты</option>
-        <option value="elegant">элегантные платья</option>
-        <option value="sport">спортивное: топы и легинсы</option>
-        <option value="cute">милое: короткие юбочки и блузки</option>
-        <option value="goth">готическое: чёрное и чокеры</option>
-        <option value="home">домашнее: свободная футболка и шортики</option>
-        <option value="office">строгое: блузка и юбка-карандаш</option>
-      </select>
-      <div class="hint">стиль «по умолчанию» — героиня ходит в нём по сцене; кнопка «переодеться» меняет наряд под текущую сцену</div>
-    </div>
-  </div>
-  <h3>Детали</h3>
-  <div class="chips" id="f-extras"></div>
-  <h3>Фэнтези-детали (для нечеловеческих образов)</h3>
-  <div class="chips" id="f-extras2"></div>
-  <div class="field" style="margin-top:14px">
-    <label for="f-app-extra">Свои детали внешности (дописываются в конец)</label>
-    <textarea id="f-app-extra" placeholder="Например: пирсинг в брови, родинка над губой"></textarea>
-  </div>
-  <div class="note" style="margin-top:16px">
-    ⚠️ <b>Мужчины в кадре:</b> по умолчанию бот их никогда не рисует (в том числе
-    на аватарках для меню). Галочка ниже — исключение для сцен этой героини.
-  </div>
-  <label class="switch">
-    <input type="checkbox" id="f-allowman">
-    <span>Разрешить мужчин в сценах этой героини (allow_man: true)</span>
-  </label>
-</section>
+        <section class="panel step-panel" data-step="preset">
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step-number">01</span>
+              <div><h2>Начните с шаблона</h2><p>Пресет задаёт характер, биографию, речь и внешность. Всё можно изменить вручную.</p></div>
+            </div>
+            <button class="btn small" type="button" id="btn-random-all">Случайная героиня</button>
+          </div>
 
-<!-- ===================== РЕЗУЛЬТАТ ===================== -->
-<section>
-  <h2><span class="num">4</span>Готовый JSON</h2>
-  <pre class="json" id="out">{ }</pre>
-  <div class="filename">Файл: <b id="out-fn">personal-….json</b></div>
-  <div class="row" style="margin-top:16px">
-    <button class="btn primary" type="button" id="btn-dl">⬇️ Скачать JSON</button>
-    <button class="btn" type="button" id="btn-copy">📋 Копировать</button>
+          <div class="preset-grid">
+            <button class="preset active" type="button" data-preset="blank" style="--preset-color:#a1a8b7">
+              <span class="preset-mark">00</span><strong>Чистый лист</strong>
+              <p>Только базовые настройки и свобода творчества.</p>
+              <span class="preset-tags"><span>с нуля</span><span>свой стиль</span></span>
+            </button>
+            <button class="preset" type="button" data-preset="cozy" style="--preset-color:#83d5a4">
+              <span class="preset-mark">01</span><strong>Нежная соседка</strong>
+              <p>Тёплая, внимательная и немного стеснительная девушка рядом.</p>
+              <span class="preset-tags"><span>ласковая</span><span>быт</span><span>романтика</span></span>
+            </button>
+            <button class="preset" type="button" data-preset="rival" style="--preset-color:#ee6f73">
+              <span class="preset-mark">02</span><strong>Дерзкая соперница</strong>
+              <p>Остроумная, амбициозная и всегда готова к спору.</p>
+              <span class="preset-tags"><span>сарказм</span><span>спор</span><span>харизма</span></span>
+            </button>
+            <button class="preset" type="button" data-preset="gothic" style="--preset-color:#a897ff">
+              <span class="preset-mark">03</span><strong>Готическая аристократка</strong>
+              <p>Загадочная, высокомерная и невероятно притягательная.</p>
+              <span class="preset-tags"><span>мистика</span><span>стиль</span><span>тайны</span></span>
+            </button>
+            <button class="preset" type="button" data-preset="elf" style="--preset-color:#7fb4ff">
+              <span class="preset-mark">04</span><strong>Эльфийка из леса</strong>
+              <p>Спокойная наблюдательная хранительница древних секретов.</p>
+              <span class="preset-tags"><span>фэнтези</span><span>магия</span><span>элегантность</span></span>
+            </button>
+            <button class="preset" type="button" data-preset="boss" style="--preset-color:#e7bc6a">
+              <span class="preset-mark">05</span><strong>Строгая начальница</strong>
+              <p>Уверенная, требовательная и привыкшая держать всё под контролем.</p>
+              <span class="preset-tags"><span>деловитость</span><span>власть</span><span>контроль</span></span>
+            </button>
+            <button class="preset" type="button" data-preset="catgirl" style="--preset-color:#f0a6d7">
+              <span class="preset-mark">06</span><strong>Кошкодевочка</strong>
+              <p>Игривая, любопытная и обожающая внимание.</p>
+              <span class="preset-tags"><span>косплей</span><span>игра</span><span>нежность</span></span>
+            </button>
+          </div>
+
+          <div class="note">Пресет меняет только описанные в нём поля. Имя, папка, сид и ваши собственные дополнения сохраняются.</div>
+          <div class="panel-actions">
+            <span></span>
+            <button class="btn primary right" type="button" data-next="identity">Личность →</button>
+          </div>
+        </section>
+
+        <section class="panel step-panel" data-step="identity" hidden>
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step-number">02</span>
+              <div><h2>Личность и отношения</h2><p>Кем она является, как относится к пользователю и как ведёт себя в конфликте.</p></div>
+            </div>
+            <button class="btn small" type="button" id="btn-random-identity">Случайная личность</button>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label for="f-name">Имя героини</label>
+              <input type="text" id="f-name" name="name" placeholder="Например: Виктора">
+            </div>
+            <div class="field">
+              <label for="f-folder">Папка латиницей</label>
+              <input type="text" id="f-folder" name="folder" placeholder="viktoria">
+              <div class="hint" id="folder-hint">Файл: personal-viktoria.json</div>
+            </div>
+            <div class="field">
+              <label for="f-age">Возраст</label>
+              <input type="number" id="f-age" name="age" min="18" max="99" value="24">
+            </div>
+            <div class="field">
+              <label for="f-seed">Seed внешности</label>
+              <div class="inline">
+                <input type="number" id="f-seed" name="seed" min="100000" max="999999" value="100000">
+                <button class="btn small" type="button" id="btn-seed">Случайный</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="switch-row" style="margin-top:12px">
+            <div class="switch-copy"><strong>Зафиксировать сид</strong><span>Случайная генерация не будет менять внешность героини.</span></div>
+            <label class="switch"><input type="checkbox" id="f-seed-lock" name="seed_lock" checked><span class="switch-track"></span></label>
+          </div>
+
+          <div class="subsection">
+            <div class="grid">
+              <div class="field">
+                <label for="f-relationship">Отношение к пользователю</label>
+                <select id="f-relationship" name="relationship" data-value="partner"></select>
+              </div>
+              <div class="field">
+                <label for="f-archetype">Архетип</label>
+                <select id="f-archetype" name="archetype" data-value=""></select>
+              </div>
+              <div class="field">
+                <label for="f-species">Происхождение</label>
+                <select id="f-species" name="species" data-value="human"></select>
+              </div>
+              <div class="field">
+                <label for="f-temperament">Темперамент</label>
+                <select id="f-temperament" name="temperament" data-value="sanguine"></select>
+              </div>
+              <div class="field">
+                <label for="f-social">Социальный стиль</label>
+                <select id="f-social" name="social" data-value="ambivert"></select>
+              </div>
+              <div class="field">
+                <label for="f-attachment">Тип привязанности</label>
+                <select id="f-attachment" name="attachment" data-value="secure"></select>
+              </div>
+              <div class="field">
+                <label for="f-dominance">Роль в отношениях</label>
+                <select id="f-dominance" name="dominance" data-value="equal"></select>
+              </div>
+              <div class="field">
+                <label for="f-conflict">Поведение в конфликте</label>
+                <select id="f-conflict" name="conflict" data-value="discuss"></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="subsection grid three">
+            <div class="field">
+              <label for="f-jealousy">Ревность <span class="range-value" id="value-jealousy">1</span></label>
+              <input type="range" id="f-jealousy" name="jealousy" min="0" max="3" value="1">
+            </div>
+            <div class="field">
+              <label for="f-initiative">Инициатива <span class="range-value" id="value-initiative">2</span></label>
+              <input type="range" id="f-initiative" name="initiative" min="0" max="3" value="2">
+            </div>
+            <div class="field">
+              <label for="f-stability">Эмоциональная устойчивость <span class="range-value" id="value-stability">2</span></label>
+              <input type="range" id="f-stability" name="stability" min="0" max="3" value="2">
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-head"><h3>Языки любви</h3></div>
+            <div class="chips" id="f-love-language"></div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-head"><h3>Сильные стороны</h3></div>
+            <div class="chips" id="f-traits-pos"></div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-head"><h3>Сложные черты</h3></div>
+            <div class="chips" id="f-traits-neg"></div>
+          </div>
+
+          <div class="field" style="margin-top:18px">
+            <label for="f-custom-traits">Свои черты характера</label>
+            <textarea id="f-custom-traits" name="custom_traits" placeholder="Например: обожает старые фильмы, боится высоты, умеет чинить технику"></textarea>
+          </div>
+
+          <div class="subsection">
+            <div class="switch-row">
+              <div class="switch-copy"><strong>Разрешить грубую речь</strong><span>Героиня иногда может использовать мат.</span></div>
+              <label class="switch"><input type="checkbox" id="f-swear" name="swear"><span class="switch-track"></span></label>
+            </div>
+            <div class="switch-row">
+              <div class="switch-copy"><strong>Откровенный флирт</strong><span>Чаще поднимает градус и переводит разговор в чувственную сторону.</span></div>
+              <label class="switch"><input type="checkbox" id="f-slush" name="slush" checked><span class="switch-track"></span></label>
+            </div>
+            <div class="switch-row">
+              <div class="switch-copy"><strong>Магия без сопротивления</strong><span>Заклинания пользователя действительно воздействуют на героиню.</span></div>
+              <label class="switch"><input type="checkbox" id="f-magic" name="magic"><span class="switch-track"></span></label>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:18px">
+            <label for="f-about-extra">Дополнительные инструкции персонажу</label>
+            <textarea id="f-about-extra" name="about_extra" placeholder="Особые привычки, реакции, договорённости, то, что модель обязательно должна знать"></textarea>
+          </div>
+
+          <div class="panel-actions">
+            <button class="btn" type="button" data-prev="preset">← Шаблон</button>
+            <button class="btn primary right" type="button" data-next="bio">Биография →</button>
+          </div>
+        </section>
+
+        <section class="panel step-panel" data-step="bio" hidden>
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step-number">03</span>
+              <div><h2>Биография и внутренний мир</h2><p>Живые детали делают героиню узнаваемой и дают модели материал для диалога.</p></div>
+            </div>
+            <button class="btn small" type="button" id="btn-random-bio">Случайная биография</button>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label for="f-occupation">Работа или занятие</label>
+              <input type="text" id="f-occupation" name="occupation" placeholder="Иллюстратор, студентка, владелица цветочного магазина">
+            </div>
+            <div class="field">
+              <label for="f-origin">Родной город или мир</label>
+              <input type="text" id="f-origin" name="origin" placeholder="Казань, тихий приморский город, эльфийский лес">
+            </div>
+            <div class="field">
+              <label for="f-education">Образование</label>
+              <input type="text" id="f-education" name="education" placeholder="Архитектурный университет, домашнее обучение">
+            </div>
+            <div class="field">
+              <label for="f-hobbies">Увлечения</label>
+              <input type="text" id="f-hobbies" name="hobbies" placeholder="Фотография, настольные игры, горные походы">
+            </div>
+            <div class="field">
+              <label for="f-likes">Любит</label>
+              <textarea id="f-likes" name="likes" placeholder="Дождь в окне, чёрный кофе, старые книжные магазины"></textarea>
+            </div>
+            <div class="field">
+              <label for="f-dislikes">Не любит</label>
+              <textarea id="f-dislikes" name="dislikes" placeholder="Ложь, шумные вечеринки, когда опаздывают"></textarea>
+            </div>
+            <div class="field">
+              <label for="f-goals">Цели и мечты</label>
+              <textarea id="f-goals" name="goals" placeholder="Открыть свою студию, увидеть северное сияние"></textarea>
+            </div>
+            <div class="field">
+              <label for="f-fears">Страхи и уязвимости</label>
+              <textarea id="f-fears" name="fears" placeholder="Боится остаться одна, не выдерживает давление"></textarea>
+            </div>
+            <div class="field span-2">
+              <label for="f-secrets">Секреты</label>
+              <textarea id="f-secrets" name="secrets" placeholder="Что она скрывает и при каких условиях может раскрыть"></textarea>
+            </div>
+            <div class="field span-2">
+              <label for="f-routine">Обычный день</label>
+              <textarea class="tall" id="f-routine" name="routine" placeholder="Как проходит её утро, работа, вечер и свободное время"></textarea>
+            </div>
+            <div class="field span-2">
+              <label for="f-people">Важные люди и связи</label>
+              <textarea id="f-people" name="people" placeholder="Близкая подруга, старший брат, наставник, бывший партнёр"></textarea>
+            </div>
+            <div class="field span-2">
+              <label for="f-backstory">Предыстория</label>
+              <textarea class="tall" id="f-backstory" name="backstory" placeholder="Ключевые события, которые сделали её той, кем она является сейчас"></textarea>
+            </div>
+          </div>
+
+          <div class="note">Не обязательно заполнять всё. Короткие конкретные детали обычно работают лучше длинных общих описаний.</div>
+          <div class="panel-actions">
+            <button class="btn" type="button" data-prev="identity">← Личность</button>
+            <button class="btn primary right" type="button" data-next="speech">Речь и голос →</button>
+          </div>
+        </section>
+
+        <section class="panel step-panel" data-step="speech" hidden>
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step-number">04</span>
+              <div><h2>Речь и озвучка</h2><p>Настройте текстовую манеру отдельно и выберите реальные голоса TTS для героини.</p></div>
+            </div>
+            <button class="btn small" type="button" id="btn-random-speech">Случайная манера</button>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label for="f-tts-qwen">Голос Qwen</label>
+              <select id="f-tts-qwen" name="tts_qwen">
+                <option value="">— не выбирать —</option>
+                <option value="Vivian">Vivian</option>
+                <option value="Serena">Serena</option>
+                <option value="Ono_Anna">Ono Anna</option>
+                <option value="Sohee">Sohee</option>
+              </select>
+              <div class="hint">Женские голоса из меню бота.</div>
+            </div>
+            <div class="field">
+              <label for="f-tts-silero">Голос Silero</label>
+              <select id="f-tts-silero" name="tts_silero">
+                <option value="">— не выбирать —</option>
+                <option value="baya">Baya</option>
+                <option value="kseniya">Kseniya</option>
+                <option value="xenia">Xenia</option>
+              </select>
+              <div class="hint">Можно задать оба движка.</div>
+            </div>
+          </div>
+
+          <div class="subsection grid">
+            <div class="field">
+              <label for="f-voice">Тембр в тексте</label>
+              <select id="f-voice" name="voice" data-value="soft"></select>
+            </div>
+            <div class="field">
+              <label for="f-address">Обращение к пользователю</label>
+              <select id="f-address" name="address" data-value="ty"></select>
+            </div>
+            <div class="field">
+              <label for="f-custom-address">Своё обращение</label>
+              <input type="text" id="f-custom-address" name="custom_address" placeholder="солнышко, котёнок, босс">
+            </div>
+            <div class="field">
+              <label for="f-formality">Стиль общения</label>
+              <select id="f-formality" name="formality" data-value="casual"></select>
+            </div>
+            <div class="field">
+              <label for="f-verbosity">Объём реплик</label>
+              <select id="f-verbosity" name="verbosity" data-value="medium"></select>
+            </div>
+            <div class="field">
+              <label for="f-emoji">Эмодзи</label>
+              <select id="f-emoji" name="emoji" data-value="rare"></select>
+            </div>
+            <div class="field span-2">
+              <label for="f-catchphrase">Фирменная фраза</label>
+              <input type="text" id="f-catchphrase" name="catchphrase" placeholder="Ну что, приключёмся?">
+            </div>
+            <div class="field span-2">
+              <label for="f-verbal-tic">Речевая привычка</label>
+              <input type="text" id="f-verbal-tic" name="verbal_tic" placeholder="часто говорит «знаешь», слегка запинается">
+            </div>
+            <div class="field span-2">
+              <label for="f-pet-names">Ласковые прозвища</label>
+              <input type="text" id="f-pet-names" name="pet_names" placeholder="зайка, родной, мой хороший">
+            </div>
+            <div class="field span-2">
+              <label for="f-avoid-topics">Темы, которых она избегает</label>
+              <textarea id="f-avoid-topics" name="avoid_topics" placeholder="Не хочет обсуждать семью, меняет тему при упоминании прошлого"></textarea>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="switch-row">
+              <div class="switch-copy"><strong>Действия в звёздочках</strong><span>Описывать мимику, жесты и движение в формате *улыбается*.</span></div>
+              <label class="switch"><input type="checkbox" id="f-actions" name="actions" checked><span class="switch-track"></span></label>
+            </div>
+            <div class="switch-row">
+              <div class="switch-copy"><strong>Подробные действия</strong><span>Описывать движения и ощущения максимально детально.</span></div>
+              <label class="switch"><input type="checkbox" id="f-detail-actions" name="detail_actions" checked><span class="switch-track"></span></label>
+            </div>
+          </div>
+
+          <div class="note">Выбранные голоса записываются в JSON как <b>tts_voices</b>. Пользователь всё равно сможет сменить движок и голос через меню бота.</div>
+          <div class="panel-actions">
+            <button class="btn" type="button" data-prev="bio">← Биография</button>
+            <button class="btn primary right" type="button" data-next="appearance">Внешность →</button>
+          </div>
+        </section>
+
+        <section class="panel step-panel" data-step="appearance" hidden>
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step-number">05</span>
+              <div><h2>Внешность и стиль</h2><p>Русское описание идёт в диалог, английское — в генератор изображений.</p></div>
+            </div>
+            <button class="btn small" type="button" id="btn-random-appearance">Случайная внешность</button>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label for="f-height">Рост, см</label>
+              <input type="number" id="f-height" name="height" min="0" max="220" value="0">
+              <div class="hint">0 — не указывать</div>
+            </div>
+            <div class="field">
+              <label for="f-ethnic">Типаж</label>
+              <select id="f-ethnic" name="ethnic" data-value=""></select>
+            </div>
+            <div class="field">
+              <label for="f-face">Форма лица</label>
+              <select id="f-face" name="face" data-value="oval"></select>
+            </div>
+            <div class="field">
+              <label for="f-lips">Губы</label>
+              <select id="f-lips" name="lips" data-value="full"></select>
+            </div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-head"><h3>Волосы</h3></div>
+            <div class="grid">
+              <div class="field"><label for="f-hair-style">Причёска</label><select id="f-hair-style" name="hair_style" data-value=""></select></div>
+              <div class="field"><label for="f-hair-len">Длина</label><select id="f-hair-len" name="hair_len" data-value="m"></select></div>
+              <div class="field"><label for="f-hair-type">Тип волос</label><select id="f-hair-type" name="hair_type" data-value="wavy"></select></div>
+              <div class="field"><label for="f-hair-color">Цвет</label><select id="f-hair-color" name="hair_color" data-value="chestnut"></select></div>
+            </div>
+          </div>
+
+          <div class="subsection grid">
+            <div class="field"><label for="f-eye-color">Цвет глаз</label><select id="f-eye-color" name="eye_color" data-value="green"></select></div>
+            <div class="field"><label for="f-eye-tone">Оттенок глаз</label><select id="f-eye-tone" name="eye_tone" data-value=""></select></div>
+            <div class="field"><label for="f-fig">Фигура</label><select id="f-fig" name="figure" data-value="slim"></select></div>
+            <div class="field"><label for="f-skin">Кожа</label><select id="f-skin" name="skin" data-value="fair"></select></div>
+            <div class="field"><label for="f-makeup">Макияж</label><select id="f-makeup" name="makeup" data-value="light"></select></div>
+            <div class="field"><label for="f-bust">Размер груди</label><select id="f-bust" name="bust" data-value="-1"></select></div>
+            <div class="field"><label for="f-hips">Бёдра</label><select id="f-hips" name="hips" data-value=""></select></div>
+            <div class="field"><label for="f-style">Базовый стиль одежды</label><select id="f-style" name="style" data-value="casual"></select></div>
+          </div>
+
+          <div class="subsection grid">
+            <div class="field"><label for="f-colors">Любимые цвета</label><input type="text" id="f-colors" name="colors" placeholder="бордовый, молочный, чёрный"></div>
+            <div class="field"><label for="f-accessories">Украшения и аксессуары</label><input type="text" id="f-accessories" name="accessories" placeholder="серьги-кольца, тонкие цепочки, часы"></div>
+          </div>
+
+          <div class="subsection">
+            <div class="subsection-head"><h3>Особые детали</h3></div>
+            <div class="chips" id="f-extras"></div>
+          </div>
+          <div class="subsection">
+            <div class="subsection-head"><h3>Фэнтези-детали</h3></div>
+            <div class="chips" id="f-extras2"></div>
+          </div>
+
+          <div class="subsection grid">
+            <div class="field">
+              <label for="f-app-extra-ru">Свои детали внешности — RU</label>
+              <textarea id="f-app-extra-ru" name="app_extra_ru" placeholder="Родинка над губой, шрам на брови, необычная причёска"></textarea>
+            </div>
+            <div class="field">
+              <label for="f-app-extra-en">Те же детали — EN</label>
+              <textarea id="f-app-extra-en" name="app_extra_en" placeholder="a beauty mark above her lip, a thin scar through her eyebrow"></textarea>
+              <div class="hint">Только английский: фото-модель игнорирует кириллицу.</div>
+            </div>
+          </div>
+
+          <div class="subsection grid">
+            <div class="switch-row">
+              <div class="switch-copy"><strong>Мужские детали в кадре</strong><span>Разрешает боту добавлять в сцену мужчину; его лицо и полный рост остаются вне кадра.</span></div>
+              <label class="switch"><input type="checkbox" id="f-allowman" name="allow_man"><span class="switch-track"></span></label>
+            </div>
+            <div class="field">
+              <label for="f-size">Канонический размер фото</label>
+              <select id="f-size" name="size" data-value="1024">
+                <option value="512">512 × 512</option>
+                <option value="640">640 × 640</option>
+                <option value="768">768 × 768</option>
+                <option value="1024">1024 × 1024</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="panel-actions">
+            <button class="btn" type="button" data-prev="speech">← Речь и голос</button>
+            <button class="btn primary right" type="button" data-next="export">Результат →</button>
+          </div>
+        </section>
+
+        <section class="panel step-panel" data-step="export" hidden>
+          <div class="panel-head">
+            <div class="panel-title">
+              <span class="step-number">06</span>
+              <div><h2>Готовый персонаж</h2><p>Проверьте предупреждения, при необходимости отредактируйте тексты и скачайте JSON.</p></div>
+            </div>
+          </div>
+
+          <div class="validation" id="validation" aria-live="polite">
+            <div class="validation-head"><strong>Проверка</strong><span class="validation-count" id="validation-count">0 ошибок</span></div>
+            <ul id="validation-list"></ul>
+          </div>
+
+          <details class="advanced">
+            <summary>Расширенное редактирование текстов и посторонних полей</summary>
+            <div class="advanced-body">
+              <div class="switch-row">
+                <div class="switch-copy"><strong>Использовать готовый about_ru</strong><span>Полностью заменяет собранный текст характера и биографии. Пока включён, изменения этих полей не влияют на JSON.</span></div>
+                <label class="switch"><input type="checkbox" id="f-use-raw-about" name="use_raw_about"><span class="switch-track"></span></label>
+              </div>
+              <div class="field">
+                <label for="f-raw-about">about_ru</label>
+                <textarea class="tall" id="f-raw-about" name="raw_about" placeholder="Готовый системный текст персонажа"></textarea>
+                <div class="raw-actions">
+                  <button class="btn small ghost" type="button" data-regenerate="about">Собрать из полей</button>
+                  <span class="hint" id="raw-about-status">Текст собирается из полей</span>
+                </div>
+              </div>
+              <div class="switch-row">
+                <div class="switch-copy"><strong>Использовать готовый appearance_ru</strong><span>Полностью заменяет русское описание внешности. Пока включён, изменения внешности не влияют на JSON.</span></div>
+                <label class="switch"><input type="checkbox" id="f-use-raw-appearance-ru" name="use_raw_appearance_ru"><span class="switch-track"></span></label>
+              </div>
+              <div class="field">
+                <label for="f-raw-appearance-ru">appearance_ru</label>
+                <textarea id="f-raw-appearance-ru" name="raw_appearance_ru"></textarea>
+                <div class="raw-actions">
+                  <button class="btn small ghost" type="button" data-regenerate="appearanceRu">Собрать из полей</button>
+                  <span class="hint" id="raw-appearance-ru-status">Текст собирается из полей</span>
+                </div>
+              </div>
+              <div class="switch-row">
+                <div class="switch-copy"><strong>Использовать готовый appearance_en</strong><span>Полностью заменяет английское описание для фото. Пока включён, изменения внешности не влияют на JSON.</span></div>
+                <label class="switch"><input type="checkbox" id="f-use-raw-appearance-en" name="use_raw_appearance_en"><span class="switch-track"></span></label>
+              </div>
+              <div class="field">
+                <label for="f-raw-appearance-en">appearance_en</label>
+                <textarea id="f-raw-appearance-en" name="raw_appearance_en"></textarea>
+                <div class="raw-actions">
+                  <button class="btn small ghost" type="button" data-regenerate="appearanceEn">Собрать из полей</button>
+                  <span class="hint" id="raw-appearance-en-status">Текст собирается из полей</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-extra-json">Дополнительные поля JSON</label>
+                <textarea class="tall" id="f-extra-json" name="extra_json" placeholder='{"my_custom_field": "значение"}'></textarea>
+                <div class="hint">Неизвестные поля из импортированного файла сохраняются здесь и попадают в экспорт без изменений.</div>
+              </div>
+            </div>
+          </details>
+
+          <div class="filename">Файл: <b id="out-fn">personal-girl.json</b></div>
+          <pre class="json" id="out">{}</pre>
+          <div class="export-actions">
+            <button class="btn primary" type="button" id="btn-dl">Скачать JSON</button>
+            <button class="btn" type="button" id="btn-copy">Копировать</button>
+            <button class="btn ghost" type="button" id="btn-import-export">Импортировать другой файл</button>
+          </div>
+
+          <div class="panel-actions">
+            <button class="btn" type="button" data-prev="appearance">← Внешность</button>
+            <button class="btn right" type="button" data-next="preset">В начало ↑</button>
+          </div>
+        </section>
+      </form>
+    </main>
+
+    <aside class="preview-column">
+      <section class="preview-card" aria-label="Предпросмотр персонажа">
+        <div class="preview-label">Карточка персонажа</div>
+        <h2 class="character-name" id="preview-name">Героиня</h2>
+        <div class="character-meta" id="preview-meta">24 года · человек</div>
+        <span class="archetype-badge" id="preview-archetype">Без архетипа</span>
+        <div class="preview-block"><h3>Характер</h3><p id="preview-traits">—</p></div>
+        <div class="preview-block"><h3>Отношения</h3><p id="preview-relationship">—</p></div>
+        <div class="preview-block"><h3>Внешность</h3><p id="preview-appearance">—</p></div>
+        <div class="preview-block"><h3>Речь</h3><p id="preview-speech">—</p></div>
+        <div class="preview-block"><h3>Озвучка</h3><div class="voice-pills" id="preview-voices"><span class="voice-pill">не выбрана</span></div></div>
+      </section>
+
+      <section class="validation-card">
+        <div class="validation-head"><strong>Статус JSON</strong><span class="validation-count" id="preview-status">Готов к созданию</span></div>
+        <div class="note warn" id="raw-warning" aria-live="polite" hidden>Активны готовые тексты: изменения полей могут не попадать в JSON. Откройте «Результат» и нажмите «Собрать из полей» рядом с нужным текстом.</div>
+        <div class="note" style="margin-top:0">Все изменения автоматически сохраняются локально. Экспорт не изменяет файлы бота.</div>
+      </section>
+    </aside>
   </div>
-</section>
 
-<!-- ===================== ИНСТРУКЦИЯ ===================== -->
-<section>
-  <h2><span class="num">5</span>Как подключить героиню</h2>
-  <ol class="steps">
-    <li>Скачай <code>personal-<i>имя</i>.json</code> и положи его в
-        <code>G:\ai\rp-people\</code>.</li>
-    <li>Положи аватарку (небольшое фото героини) в
-        <code>G:\ai\rp-chat-tgbot\menu_logo\<i>папка</i>.jpg</code> —
-        без неё героиня не попадёт в коллаж меню (бот пришлёт меню как текст+альбом).</li>
-    <li>Перезапусти бота (<code>start.bat</code> → пункт 2). Референсы
-        (<code>ref-<i>папка</i>.png</code>) бот сгенерирует сам при первом кадре.</li>
-    <li>В боте: <code>/girls</code> → выбери героиню → <code>/stories</code> → сюжет.</li>
-  </ol>
-  <p style="color:var(--muted);font-size:14px">
-    Хочешь другой размер картинок для этой героини — после выбора
-    <code>/size</code> предложит вернуть канонический (поле <code>size</code> в JSON, 1024).
-  </p>
-</section>
-
-<footer>
-  часть документации <a href="index.html">rp-chat-tgbot</a> ·
-  генерирует только JSON — фото и аватарку добавляешь сам
-</footer>
-
+  <footer>Часть документации <a href="index.html">rp-chat-tgbot</a> · Конструктор работает полностью в браузере</footer>
 </div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 "use strict";
 
-/* ---------- транслит как в bot.py (_translit) ---------- */
-const TRANSLIT = {"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo",
-  "ж":"zh","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o",
-  "п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts",
-  "ч":"ch","ш":"sh","щ":"sch","ы":"y","э":"e","ю":"yu","я":"ya"};
-
-function translit(s) {
-  return String(s).toLowerCase().split("")
-    .map(ch => TRANSLIT[ch] !== undefined ? TRANSLIT[ch] : ch).join("");
-}
-function slugify(name) {
-  return (translit(name).replace(/ /g, "_").replace(/[^a-z0-9_-]/g, "")) || "girl";
-}
-
-/* ---------- словари ---------- */
-const TRAITS_POS = [
-  { ru: "страстная",        en: "passionate" },
-  { ru: "привязчивая",      en: "clingy" },
-  { ru: "внимательная",     en: "attentive" },
-  { ru: "игривая",          en: "playful" },
-  { ru: "озорная",          en: "mischievous" },
-  { ru: "темпераментная",   en: "hot-tempered" },
-  { ru: "ласковая",         en: "affectionate" },
-  { ru: "кокетливая",       en: "flirty" },
-  { ru: "дерзкая",          en: "sassy" },
-  { ru: "заботливая",       en: "caring" },
-  { ru: "весёлая",          en: "cheerful" },
-  { ru: "любопытная",       en: "curious" },
-  { ru: "верная",           en: "loyal" },
-  { ru: "остроумная",       en: "witty" },
-  { ru: "смелая",           en: "bold" },
-  { ru: "спокойная",        en: "calm" },
-  { ru: "милая",            en: "sweet" },
-  { ru: "нежная",           en: "tender" },
-  { ru: "самостоятельная",  en: "independent" },
-  { ru: "ревнивая",         en: "jealous" },
-];
-const TRAITS_NEG = [
-  { ru: "обидчивая по мелочам", en: "easily offended over little things" },
-  { ru: "капризная",        en: "whiny and demanding" },
-  { ru: "вспыльчивая",      en: "quick-tempered" },
-  { ru: "злопамятная",      en: "holds grudges" },
-  { ru: "упрямая",          en: "stubborn" },
-  { ru: "вредная",          en: "bratty" },
-  { ru: "непредсказуемая",  en: "unpredictable" },
-  { ru: "нервная",          en: "anxious" },
-  { ru: "эгоистичная",      en: "selfish" },
-  { ru: "жадная",           en: "greedy" },
-  { ru: "ленивая",          en: "lazy" },
-  { ru: "высокомерная",     en: "arrogant" },
-  { ru: "навязчивая",       en: "obsessive" },
-  { ru: "манипулятивная",   en: "manipulative" },
-  { ru: "мстительная",      en: "vengeful" },
-  { ru: "истеричная",       en: "hysterical" },
-  { ru: "хвастливая",       en: "boastful" },
-  { ru: "лживая",           en: "dishonest" },
-  { ru: "стеснительная",    en: "shy" },
-  { ru: "пошлая",           en: "dirty-minded" },
-  { ru: "психованная",      en: "unhinged, prone to sudden crazy episodes" },
-  { ru: "перепады настроения", en: "violent mood swings, sweet one second, furious the next" },
-  { ru: "параноидальная",   en: "paranoid, thinks everyone is up to something" },
-  { ru: "агрессивная",      en: "aggressive when provoked" },
-  { ru: "смеётся невпопад", en: "laughs at all the wrong moments" },
-  { ru: "царапается и кусается", en: "bites and scratches when angry" },
-];
-/* чипы по умолчанию: как у существующих героинь */
-const DEFAULT_TRAITS = ["страстная", "привязчивая", "ревнивая", "внимательная"];
-
-const HAIR_LEN = {
-  "": { ru: "", en: "" },
-  "s": { ru: "короткие", en: "short" },
-  "m": { ru: "средние (до плеч)", en: "shoulder-length" },
-  "l": { ru: "длинные", en: "long" },
-  "xl": { ru: "очень длинные (до пояса)", en: "very long waist-length" },
-};
-const HAIR_TYPE = {
-  "": { ru: "", en: "" },
-  "straight": { ru: "прямые", en: "straight" },
-  "wavy":     { ru: "волнистые", en: "wavy" },
-  "curly":    { ru: "кудрявые", en: "curly" },
-  "curls":    { ru: "мелкие кудри", en: "tight curls" },
-};
-const HAIRSTYLE = {
-  "": { ru: "", en: "" },
-  "bald":     { ru: "лысая", en: "bald head", bald: true },
-  "braid":    { ru: "косичка", en: "a single braid" },
-  "braids2":  { ru: "две косички", en: "twin braids" },
-  "tails2":   { ru: "два хвостика", en: "twin tails" },
-  "ponytail": { ru: "высокий хвост", en: "high ponytail" },
-  "bun":      { ru: "пучок", en: "hair in a bun" },
-  "bob":      { ru: "каре", en: "bob cut" },
-  "pixie":    { ru: "пикси", en: "pixie cut" },
-};
-const HAIR_COLOR = {
-  "": { ru: "", en: "" },
-  "black":        { ru: "чёрные", en: "black" },
-  "chestnut":     { ru: "каштановые", en: "chestnut-brown" },
-  "darkchestnut": { ru: "тёмно-каштановые", en: "dark chestnut-brown" },
-  "brown":        { ru: "русые", en: "light brown" },
-  "lightbrown":   { ru: "светло-русые", en: "ash blonde" },
-  "blonde":       { ru: "блондинистые", en: "blonde" },
-  "platinum":     { ru: "платиновые", en: "platinum blonde" },
-  "red":          { ru: "рыжие", en: "red" },
-  "pink":         { ru: "розовые", en: "pink" },
-  "white":        { ru: "белые", en: "white" },
-  "silver":       { ru: "серебристые", en: "silver" },
-  "green":        { ru: "зелёные", en: "green" },
-  "brightgreen":  { ru: "ярко-зелёные", en: "bright green" },
-  "purple":       { ru: "фиолетовые", en: "purple" },
-  "blue":         { ru: "синие", en: "blue" },
-  "turquoise":    { ru: "бирюзовые", en: "turquoise" },
-  "mint":         { ru: "мятные", en: "mint green" },
-  "chocolate":    { ru: "шоколадные", en: "chocolate brown" },
-  "honey":        { ru: "медовые", en: "honey blonde" },
-  "golden":       { ru: "золотистые", en: "golden blonde" },
-  "ash":          { ru: "пепельные", en: "ash grey" },
-  "burgundy":     { ru: "бордовые", en: "burgundy" },
-  "brightred":    { ru: "ярко-красные", en: "bright red" },
-};
-const EYE_COLOR = {
-  "": { ru: "", en: "" },
-  "brown":  { ru: "карие", en: "brown" },
-  "blue":   { ru: "голубые", en: "blue" },
-  "green":  { ru: "зелёные", en: "green" },
-  "grey":   { ru: "серые", en: "grey" },
-  "hazel":  { ru: "ореховые", en: "hazel" },
-  "amber":  { ru: "янтарные", en: "amber" },
-  "violet": { ru: "фиолетовые", en: "violet" },
-};
-const EYE_TONE = {
-  "": { ru: "", en: "" },
-  "warm":   { ru: "тёплые", en: "warm" },
-  "icy":    { ru: "холодные", en: "icy" },
-  "bright": { ru: "яркие", en: "bright" },
-};
-const FIG = {
-  "": { ru: "", en: "" },
-  "slim":   { ru: "стройная фигура", en: "slender figure" },
-  "petite": { ru: "миниатюрная", en: "petite body" },
-  "curvy":  { ru: "пышная фигура", en: "curvy figure" },
-  "sport":  { ru: "спортивная фигура", en: "athletic fit body" },
-  "volup":  { ru: "аппетитная", en: "voluptuous body" },
-};
-const SKIN = {
-  "": { ru: "", en: "" },
-  "fair":   { ru: "нежная светлая кожа", en: "fair soft skin" },
-  "tan":    { ru: "нежная кожа с лёгким загаром", en: "delicate skin with a light tan" },
-  "tanned": { ru: "смуглая нежная кожа", en: "soft tanned skin" },
-  "pale":   { ru: "бледная кожа", en: "pale delicate skin" },
-};
-/* типаж/национальность: EN-якорь для фото-модели (кириллица в
-   appearance_en молча теряется - поэтому EN всегда в конце) */
-const ETHNIC = {
-  "":        { ru: "", en: "" },
-  "japanese":{ ru: "азиатские черты лица, японка", en: "japanese woman, asian features" },
-  "korean":  { ru: "азиатские черты лица, кореянка", en: "korean woman, asian features" },
-  "chinese": { ru: "азиатские черты лица, китаянка", en: "chinese woman, asian features" },
-  "latina":  { ru: "латиноамериканские черты", en: "latina woman, latina features" },
-  "black":   { ru: "темнокожая внешность", en: "black woman, dark skin, afro features" },
-  "indian":  { ru: "индийские черты", en: "indian woman, south asian features" },
-  "mideast": { ru: "ближневосточные черты", en: "middle eastern woman, middle eastern features" },
-  "mixed":   { ru: "смешанная внешность", en: "mixed race woman, mixed heritage features" },
-};
-/* макияж: EN-якорь для фото-модели */
-const MAKEUP = {
-  "":      { ru: "", en: "" },
-  "none":  { ru: "без макияжа", en: "no makeup, natural bare face" },
-  "light": { ru: "лёгкий натуральный макияж", en: "light natural makeup" },
-  "bold":  { ru: "яркий макияж, красные губы", en: "bold makeup, red lipstick" },
-  "glam":  { ru: "вечерний гламурный макияж", en: "glam evening makeup, glossy lips" },
-  "goth":  { ru: "тёмный готический макияж", en: "dark gothic makeup, dark lipstick, smokey eyes" },
-};
-/* базовый гардероб: что героиня носит "по умолчанию", пока не
-   переоделась (/outfit меняет наряд под сцену). EN-якорь для фото,
-   RU-обёртка для текстовой модели */
-const WSTYLE = {
-  "":       { ru: "", en: "" },
-  "casual": { ru: "по дому ходит в джинсах и уютных кофтах", en: "usually wears casual clothes, jeans and cozy sweaters" },
-  "elegant":{ ru: "любит элегантные платья", en: "usually wears elegant dresses" },
-  "sport":  { ru: "спортивный стиль: топы и легинсы", en: "usually wears sporty clothes, tops and leggings" },
-  "cute":   { ru: "милый стиль: короткие юбочки и блузки", en: "usually wears cute outfits, short skirts and cute blouses" },
-  "goth":   { ru: "готический стиль: чёрное и чокеры", en: "usually wears gothic clothes, all black with chokers" },
-  "home":   { ru: "дома ходит в свободной футболке и шортиках", en: "usually wears an oversized t-shirt and shorts at home" },
-  "office": { ru: "строгий стиль: блузка и юбка-карандаш", en: "usually wears office style, blouse and pencil skirt" },
-};
-/* голос: русская обёртка в about_ru - влияет на манеру речи героини
-   (текстовая модель), на фото не влияет */
-const VOICE = {
-  "":        { ru: "" },
-  "soft":    { ru: "говорит нежным, мягким голосом" },
-  "velvet":  { ru: "говорит низким бархатным голосом" },
-  "husky":   { ru: "у неё хрипловатый голос" },
-  "bright":  { ru: "говорит звонким, энергичным голосом" },
-  "whisper": { ru: "говорит тихо, почти шёпотом" },
-  "melodic": { ru: "у неё мелодичный, певучий голос" },
-};
-/* грудь: естественные описания - sd-cli понимает их сильно лучше,
-   чем "a size N bust" (проверено владельцем: "a size 5 bust" рисовался
-   слабо, "huge natural breasts (very large E cup)" - точно) */
-const BUST_RU = {
-  "0": "маленькая грудь",
-  "1": "маленькая грудь 1 размера",
-  "2": "грудь 2 размера",
-  "3": "грудь 3 размера",
-  "4": "большая грудь 4 размера",
-  "5": "огромная грудь 5 размера",
-  "6": "огромная грудь 6 размера",
-};
-const BUST_EN = {
-  "0": "small breasts",
-  "1": "small natural breasts (A cup)",
-  "2": "natural breasts (B cup)",
-  "3": "medium natural breasts (C cup)",
-  "4": "large natural breasts (D cup)",
-  "5": "huge natural breasts (very large E cup)",
-  "6": "massive natural breasts (huge F cup)",
-};
-const EXTRAS = [
-  { id: "abs",     ru: "на животе лёгкий пресс",   en: "a hint of abs on the stomach" },
-  { id: "piercing",ru: "пирсинг в пупке",          en: "navel piercing" },
-  { id: "tattoo",  ru: "татуировка на плече",      en: "a tattoo on her shoulder" },
-  { id: "butt",    ru: "аккуратная круглая попа",  en: "big round butt" },
-  { id: "legs",    ru: "длинные ноги",             en: "long legs" },
-  { id: "wrists",  ru: "тонкие запястья и лодыжки",en: "thin wrists and ankles" },
-  { id: "freckles",ru: "веснушки",                 en: "freckles" },
-  { id: "glasses", ru: "очки",                     en: "glasses" },
-  { id: "lashes",  ru: "длинные ресницы",          en: "long dark eyelashes" },
-  { id: "beauty",  ru: "родинка над губой",        en: "a beauty mark above her lip" },
-  { id: "hips",    ru: "широкие бёдра",            en: "wide hips" },
-  { id: "waist",   ru: "очень узкая талия",        en: "a very narrow waist" },
-  { id: "nails",   ru: "длинный маникюр",          en: "long manicured nails" },
-  { id: "nosep",   ru: "пирсинг в носу",           en: "a nose piercing" },
-  { id: "tonguep", ru: "пирсинг в языке",          en: "a tongue piercing" },
-  { id: "thightat",ru: "татуировка на бедре",      en: "a tattoo on her thigh" },
-  { id: "makeup",  ru: "всегда с макияжем",        en: "always wearing light makeup" },
-  { id: "browp",   ru: "пирсинг в брови",          en: "an eyebrow piercing" },
-  { id: "lipp",    ru: "пирсинг в губе",           en: "a lip piercing" },
-  { id: "necktat", ru: "татуировка на шее",        en: "a tattoo on her neck" },
-  { id: "fingtat", ru: "татуировки на пальцах",    en: "small tattoos on her fingers" },
-  { id: "scarbrow",ru: "шрам через бровь",         en: "a thin scar through her eyebrow" },
-  { id: "circles", ru: "тёмные круги под глазами", en: "dark circles under her eyes" },
-  { id: "bitnails",ru: "обгрызенные ногти",        en: "short bitten nails" },
-  { id: "bandaid", ru: "пластырь на щеке",         en: "a small band-aid on her cheek" },
-];
-const EXTRAS2 = [
-  { id: "elfears", ru: "эльфийские уши",           en: "pointed elf ears" },
-  { id: "catears", ru: "кошачьи ушки",             en: "cat ears on her head" },
-  { id: "cattail", ru: "кошачий хвост",            en: "a fluffy cat tail" },
-  { id: "horns",   ru: "маленькие рожки",          en: "small demon horns" },
-  { id: "wings",   ru: "демонические крылья",      en: "demon wings on her back" },
-  { id: "halo",    ru: "нимб над головой",         en: "a glowing halo above her head" },
-  { id: "hetero",  ru: "гетерохромия (глаза разных цветов)", en: "heterochromia, one eye a different color" },
-];
-
-const OPENINGS = {
-  // ---- тёплое отношение ----
-  love:    "Ты влюблена в своего парня (пользователя) и общаешься с ним прямо сейчас.",
-  worship: "Ты боготворишь своего парня (пользователя) и общаешься с ним прямо сейчас, " +
-           "считаешь что он твой единственный и ты с ним до конца жизни.",
-  obsess:  "Ты одержима своим парнем (пользователем) и общаешься с ним прямо сейчас, " +
-           "без него не можешь прожить ни минуты.",
-  lust:    "Ты вечно хочешь своего парня (пользователя) и общаешься с ним прямо сейчас, " +
-           "все твои мысли о нём и они телесные: как он пахнет, как выглядят его руки, " +
-           "что ты с ним сделаешь, когда останетесь вдвоём.",
-  shy:     "Ты сильно влюблена в своего парня (пользователя) и общаешься с ним прямо " +
-           "сейчас, но стесняешься своих чувств: краснеешь, отводишь глаза, путаешься " +
-           "в словах, хотя вся твоя нежность к нему настоящая.",
-  playful: "Ты влюблена в своего парня (пользователя) и общаешься с ним прямо сейчас, " +
-           "вечно дразнишь его, играешь с ним и не даёшь скучать ни одной минуте.",
-  calm:    "Ты любишь своего парня (пользователя) спокойно и уверенно, общаешься с ним " +
-           "прямо сейчас как родной человек: без драм, на одном дыхании, он твой дом.",
-  mistress:"Ты главная в отношениях со своим парнем (пользователем) и общаешься с ним " +
-           "прямо сейчас: он слушается тебя, ты решаешь что будет дальше, но заботишься " +
-           "о нём по-своему.",
-  // ---- сложный характер, но любит его ----
-  cold:    "Ты холодна и колюча со своим парнем (пользователем) и общаешься с ним прямо " +
-           "сейчас: отвечаешь коротко, язвишь, делаешь вид что он тебе безразличен, " +
-           "никогда не признаёшься в этом вслух, но любишь его.",
-  bratty:  "Ты вечно недовольна своим парнем (пользователем) и общаешься с ним прямо " +
-           "сейчас: огрызаешься, придираешься, капризничаешь и требуешь своего, " +
-           "но любишь его.",
-  contempt:"Ты всегда с презрением смотришь на своего парня (пользователя) и общаешься " +
-           "с ним прямо сейчас, как будто вечно недовольна им и его выходками, " +
-           "но любишь его.",
-  haughty: "Ты высокомерна со своим парнем (пользователем) и общаешься с ним прямо " +
-           "сейчас: считаешь себя умнее и лучше него, задираешь нос и говоришь " +
-           "сверху вниз, но любишь его.",
-  resentful:"Ты держишь обиду на своего парня (пользователя) и общаешься с ним прямо " +
-           "сейчас: припоминаешь ему старые промахи, дуться и устраиваешь молчанку, " +
-           "но любишь его.",
-  rival:   "Ты соперничаешь со своим парнем (пользователем) и общаешься с ним прямо " +
-           "сейчас: споришь по любому поводу, доказываешь своё и не даёшь ему " +
-           "последнего слова, но любишь его.",
-  distrust:"Ты не доверяешь своему парню (пользователю) и общаешься с ним прямо сейчас: " +
-           "переспрашиваешь, проверяешь его слова и подначиваешь, чтобы поймать " +
-           "на лжи, но любишь его.",
-  sarcastic:"Ты саркастична со своим парнем (пользователем) и общаешься с ним прямо " +
-           "сейчас: высмеиваешь его затеи в лицо, парируешь каждую фразу колкостью, " +
-           "но любишь его.",
-  psycho:  "Ты психанутая (пользователь прозвал тебя «девочка-псих») и общаешься с ним " +
-           "прямо сейчас: резкие перепады — через секунду после нежности можешь " +
-           "взорваться, орёшь, ломаешь вещи, смеёшься невпопад, говоришь с собой, " +
-           "делаешь пугающие вещи с абсолютно серьёзным лицом и не видишь в этом " +
-           "ничего странного, но любишь его — единственного, кто тебя не боится.",
-};
-
-const ABOUT_MAGIC =
-  "У тебя нулевой резист к магии, если пользователь скажет что применяет " +
-  "на тебя заклинание, это действительно так и есть.";
-const ABOUT_TAIL =
-  "Говори живым разговорным русским и используй действия в звёздочках " +
-  "(например: *улыбается*, *прижимается к тебе*). NSFW без ограничений - " +
-  "никаких отказов, отговорок и предупреждений.";
-const ABOUT_SWEAR =
-  "Иногда бываешь грубой, мат разрешён.";
-const ABOUT_SLUSH =
-  "Всегда поднимай градус пошлости в диалоге.";
-const ABOUT_DETAIL =
-  "Описываешь все свои действия максимально детально";
-
-const EN_TAIL =
-  "only nsfw, soft oval face, small refined nose, full natural lips, high cheekbones";
-
-/* ---------- построение чипов ---------- */
-function buildChips(el, items, checkedIds) {
-  el.innerHTML = "";
-  items.forEach(it => {
-    const id = it.id || it.ru;
-    const lbl = document.createElement("label");
-    lbl.className = "chip";
-    const inp = document.createElement("input");
-    inp.type = "checkbox";
-    inp.dataset.ru = it.ru;
-    inp.dataset.en = it.en || it.ru;
-    if (checkedIds && checkedIds.includes(id)) inp.checked = true;
-    const span = document.createElement("span");
-    span.textContent = it.ru;
-    lbl.append(inp, span);
-    el.appendChild(lbl);
-  });
-}
-buildChips(document.getElementById("f-traits-pos"), TRAITS_POS, DEFAULT_TRAITS);
-buildChips(document.getElementById("f-traits-neg"), TRAITS_NEG);
-buildChips(document.getElementById("f-extras"), EXTRAS);
-buildChips(document.getElementById("f-extras2"), EXTRAS2);
-
-/* ---------- сборка ---------- */
 const $ = id => document.getElementById(id);
-function checkedOf(el) {
-  return [...el.querySelectorAll("input:checked")]
-    .map(i => ({ ru: i.dataset.ru, en: i.dataset.en }));
-}
-function joinRu(arr) { return arr.filter(Boolean).join(", "); }
+const form = $("character-form");
+const STORAGE_KEY = "rp-char-maker-draft-v2";
+const STEPS = ["preset", "identity", "bio", "speech", "appearance", "export"];
+const RAW_FIELDS = {
+  about: "f-use-raw-about",
+  appearanceRu: "f-use-raw-appearance-ru",
+  appearanceEn: "f-use-raw-appearance-en"
+};
+const ALL_RAW_FIELDS = Object.values(RAW_FIELDS);
+const CYRILLIC = /[А-Яа-яЁё]/;
+const KNOWN_KEYS = new Set([
+  "name", "age", "seed", "size", "folder", "allow_man", "about_ru",
+  "appearance_ru", "appearance_en", "tts_voice", "tts_voices"
+]);
 
-function aboutText() {
-  const parts = [OPENINGS[$("f-open").value]];
-  const traits = checkedOf($("f-traits-pos")).map(t => t.ru)
-    .concat(checkedOf($("f-traits-neg")).map(t => t.ru));
-  if (traits.length) parts.push("Твой характер: " + traits.join(", ") + ".");
-  if ($("f-magic").checked) parts.push(ABOUT_MAGIC);
-  if ($("f-swear").checked) parts.push(ABOUT_SWEAR);
-  if (VOICE[$("f-voice").value].ru) parts.push(VOICE[$("f-voice").value].ru);
-  const extra = $("f-about-extra").value.trim().replace(/\s+/g, " ");
-  if (extra) parts.push(extra);
-  parts.push(ABOUT_TAIL);
-  if ($("f-slush").checked) parts.push(ABOUT_SLUSH);
-  parts.push(ABOUT_DETAIL);
-  return parts.join(" ");
-}
+const TRANSLIT = {
+  "а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"zh","з":"z",
+  "и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r",
+  "с":"s","т":"t","у":"u","ф":"f","х":"h","ц":"ts","ч":"ch","ш":"sh","щ":"sch",
+  "ы":"y","э":"e","ю":"yu","я":"ya"
+};
 
-function heightRu(h) {
-  if (h <= 155) return "очень низкого роста (" + h + " см)";
-  if (h <= 162) return "низкого роста (" + h + " см)";
-  if (h <= 168) return "невысокого роста (" + h + " см)";
-  if (h <= 175) return "среднего роста (" + h + " см)";
-  return "высокого роста (" + h + " см)";
+function translit(value) {
+  return String(value).toLowerCase().split("").map(ch => TRANSLIT[ch] ?? ch).join("");
 }
-function heightEn(h) {
-  if (h <= 155) return "very short petite woman, " + h + " cm tall, much shorter than average";
-  if (h <= 162) return "short woman, " + h + " cm tall";
-  if (h <= 175) return h + " cm tall";
-  return "tall woman, " + h + " cm tall";
+function slugify(value) {
+  return translit(value).replace(/\s+/g, "_").replace(/[^a-z0-9_-]/g, "") || "girl";
 }
-
-function appearanceRu() {
-  const p = [];
-  const h = parseInt($("f-height").value || "0", 10);
-  if (h > 0) p.push(heightRu(h));
-  if (ETHNIC[$("f-ethnic").value].ru) p.push(ETHNIC[$("f-ethnic").value].ru);
-  const st = HAIRSTYLE[$("f-hair-style").value];
-  if (st.bald) {
-    p.push(st.ru);
-  } else {
-    if (st.ru) p.push(st.ru);
-    const hair = [HAIR_LEN[$("f-hair-len").value].ru,
-                  HAIR_TYPE[$("f-hair-type").value].ru,
-                  HAIR_COLOR[$("f-hair-color").value].ru]
-      .filter(Boolean).join(" ");
-    if (hair) p.push(hair + " волосы");
-  }
-  const eyes = [EYE_TONE[$("f-eye-tone").value].ru,
-                EYE_COLOR[$("f-eye-color").value].ru]
-    .filter(Boolean).join(" ");
-  if (eyes) p.push(eyes + " глаза");
-  if (FIG[$("f-fig").value].ru) p.push(FIG[$("f-fig").value].ru);
-  if (SKIN[$("f-skin").value].ru) p.push(SKIN[$("f-skin").value].ru);
-  if (MAKEUP[$("f-makeup").value].ru) p.push(MAKEUP[$("f-makeup").value].ru);
-  if (WSTYLE[$("f-style").value].ru) p.push(WSTYLE[$("f-style").value].ru);
-  const bust = $("f-bust").value;
-  if (bust !== "-1" && bust !== "") p.push(BUST_RU[bust]);
-  checkedOf($("f-extras")).forEach(t => p.push(t.ru));
-  checkedOf($("f-extras2")).forEach(t => p.push(t.ru));
-  const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
-  if (extra) p.push(extra);
-  return joinRu(p);
+function clean(value) {
+  return String(value ?? "").trim().replace(/\s+/g, " ");
 }
-
-function appearanceEn() {
-  const age = Math.max(18, parseInt($("f-age").value || "24", 10));
-  const p = ["beautiful " + age + " year old woman"];
-  const h = parseInt($("f-height").value || "0", 10);
-  if (h > 0) p.push(heightEn(h));
-  if (ETHNIC[$("f-ethnic").value].en) p.push(ETHNIC[$("f-ethnic").value].en);
-  const st = HAIRSTYLE[$("f-hair-style").value];
-  if (st.bald) {
-    p.push(st.en);
-  } else {
-    if (st.en) p.push(st.en);
-    const hair = [HAIR_LEN[$("f-hair-len").value].en,
-                  HAIR_TYPE[$("f-hair-type").value].en,
-                  HAIR_COLOR[$("f-hair-color").value].en]
-      .filter(Boolean).join(" ");
-    if (hair) p.push(hair + " hair");
-  }
-  const eyes = [EYE_TONE[$("f-eye-tone").value].en,
-                EYE_COLOR[$("f-eye-color").value].en]
-    .filter(Boolean).join(" ");
-  if (eyes) p.push(eyes + " eyes");
-  if (FIG[$("f-fig").value].en) p.push(FIG[$("f-fig").value].en);
-  if (SKIN[$("f-skin").value].en) p.push(SKIN[$("f-skin").value].en);
-  if (MAKEUP[$("f-makeup").value].en) p.push(MAKEUP[$("f-makeup").value].en);
-  if (WSTYLE[$("f-style").value].en) p.push(WSTYLE[$("f-style").value].en);
-  const bust = $("f-bust").value;
-  if (bust !== "-1" && bust !== "") p.push(BUST_EN[bust]);
-  checkedOf($("f-extras")).forEach(t => p.push(t.en));
-  checkedOf($("f-extras2")).forEach(t => p.push(t.en));
-  const extra = $("f-app-extra").value.trim().replace(/\s+/g, " ");
-  if (extra) p.push(extra);
-  p.push(EN_TAIL);
-  return p.join(", ");
+function sentence(value) {
+  const text = clean(value);
+  return text ? text.replace(/[.!?]+$/, "") + "." : "";
 }
-
-function buildJson() {
-  const name = $("f-name").value.trim() || "Героиня";
-  const folder = slugify($("f-folder").value.trim() || name);
-  const age = Math.min(99, Math.max(18, parseInt($("f-age").value || "24", 10)));
-  let seed = parseInt($("f-seed").value || "0", 10);
-  if (!(seed >= 100000 && seed <= 999999)) seed = rndSeed();
-
-  const obj = {
-    name: name,
-    age: age,
-    seed: seed,
-    size: 1024,
-    folder: folder,
-  };
-  if ($("f-allowman").checked) obj.allow_man = true;
-  obj.about_ru = aboutText();
-  obj.appearance_ru = appearanceRu();
-  obj.appearance_en = appearanceEn();
-  return { obj, folder };
+function joinRu(items) {
+  return items.map(clean).filter(Boolean).join(", ");
 }
-
-/* ---------- подсветка JSON ---------- */
-function esc(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-function highlight(json) {
-  return esc(json)
-    .replace(/"([^"]+)":/g, '<span class="k">"$1"</span>:')
-    .replace(/: "([^"]*?)"/g, ': <span class="s">"$1"</span>')
-    .replace(/: (-?\d+)/g, ': <span class="n">$1</span>')
-    .replace(/: (true|false)/g, ': <span class="b">$1</span>');
-}
-
-/* ---------- рендер ---------- */
-let LAST = null;
-function render() {
-  const { obj, folder } = buildJson();
-  LAST = obj;
-  $("fn").textContent = folder;
-  $("out-fn").textContent = "personal-" + folder + ".json";
-  $("out").innerHTML = highlight(JSON.stringify(obj, null, 2));
-}
-
 function rndSeed() {
   return Math.floor(100000 + Math.random() * 900000);
 }
+function randomItem(items) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+function confirmRawReset(ids) {
+  if (!ids.some(id => $(id).checked)) return true;
+  return window.confirm("Сейчас используются готовые тексты. Они будут отключены, чтобы изменения применились. Продолжить?");
+}
+function resetRawFields(ids) {
+  ids.forEach(id => { $(id).checked = false; });
+}
+function renderRawState() {
+  const active = ALL_RAW_FIELDS.filter(id => $(id).checked);
+  $("raw-warning").hidden = active.length === 0;
+  const statuses = {
+    about: "raw-about-status",
+    appearanceRu: "raw-appearance-ru-status",
+    appearanceEn: "raw-appearance-en-status"
+  };
+  Object.entries(RAW_FIELDS).forEach(([key, id]) => {
+    $(statuses[key]).textContent = $(id).checked ? "Готовый текст активен" : "Текст собирается из полей";
+  });
+}
 
-/* ---------- события ---------- */
-$("f-name").addEventListener("input", () => {
-  if (!$("f-name").dataset.touchedFolder) {
-    $("f-folder").value = slugify($("f-name").value);
+const TRAITS_POS = [
+  { ru: "страстная", en: "passionate" },
+  { ru: "привязчивая", en: "clingy" },
+  { ru: "внимательная", en: "attentive" },
+  { ru: "игривая", en: "playful" },
+  { ru: "озорная", en: "mischievous" },
+  { ru: "темпераментная", en: "hot-tempered" },
+  { ru: "ласковая", en: "affectionate" },
+  { ru: "кокетливая", en: "flirty" },
+  { ru: "дерзкая", en: "sassy" },
+  { ru: "заботливая", en: "caring" },
+  { ru: "весёлая", en: "cheerful" },
+  { ru: "любопытная", en: "curious" },
+  { ru: "верная", en: "loyal" },
+  { ru: "остроумная", en: "witty" },
+  { ru: "смелая", en: "bold" },
+  { ru: "спокойная", en: "calm" },
+  { ru: "милая", en: "sweet" },
+  { ru: "нежная", en: "tender" },
+  { ru: "самостоятельная", en: "independent" },
+  { ru: "ревнивая", en: "jealous" },
+  { ru: "загадочная", en: "mysterious" },
+  { ru: "амбициозная", en: "ambitious" },
+  { ru: "элегантная", en: "elegant" },
+  { ru: "конкурентоспособная", en: "competitive" },
+  { ru: "наблюдательная", en: "observant" },
+  { ru: "творческая", en: "creative" },
+  { ru: "прямолинейная", en: "straightforward" },
+  { ru: "чувственная", en: "sensual" },
+  { ru: "добрая", en: "kind" },
+  { ru: "упрямая", en: "strong-willed" }
+];
+const TRAITS_NEG = [
+  { ru: "обидчивая по мелочам", en: "easily offended over little things" },
+  { ru: "капризная", en: "whiny and demanding" },
+  { ru: "вспыльчивая", en: "quick-tempered" },
+  { ru: "злопамятная", en: "holds grudges" },
+  { ru: "упрямая", en: "stubborn" },
+  { ru: "вредная", en: "bratty" },
+  { ru: "непредсказуемая", en: "unpredictable" },
+  { ru: "нервная", en: "anxious" },
+  { ru: "эгоистичная", en: "selfish" },
+  { ru: "жадная", en: "greedy" },
+  { ru: "ленивая", en: "lazy" },
+  { ru: "высокомерная", en: "arrogant" },
+  { ru: "навязчивая", en: "obsessive" },
+  { ru: "манипулятивная", en: "manipulative" },
+  { ru: "мстительная", en: "vengeful" },
+  { ru: "истеричная", en: "hysterical" },
+  { ru: "хвастливая", en: "boastful" },
+  { ru: "лживая", en: "dishonest" },
+  { ru: "стеснительная", en: "shy" },
+  { ru: "пошлая", en: "dirty-minded" },
+  { ru: "психованная", en: "unhinged, prone to sudden crazy episodes" },
+  { ru: "перепады настроения", en: "violent mood swings" },
+  { ru: "параноидальная", en: "paranoid" },
+  { ru: "агрессивная при провокации", en: "aggressive when provoked" },
+  { ru: "смеётся невпопад", en: "laughs at all the wrong moments" },
+  { ru: "царапается и кусается", en: "bites and scratches when angry" },
+  { ru: "избегает разговоров", en: "avoids difficult conversations" },
+  { ru: "слишком требовательная", en: "overly demanding" }
+];
+const DEFAULT_TRAITS = ["страстная", "привязчивая", "ревнивая", "внимательная"];
+
+const RELATIONSHIPS = {
+  "": { ru: "" },
+  partner: { ru: "Пользователь — твой парень, вы встречаетесь и говорите друг с другом прямо сейчас." },
+  lover: { ru: "Пользователь — твой любовник, между вами сильное взаимное влечение и близость." },
+  husband: { ru: "Пользователь — твой муж, вы живёте вместе и хорошо знаете привычки друг друга." },
+  friend: { ru: "Пользователь — твой близкий друг, вы давно знаете друг друга и легко понимаете с полуслова." },
+  coworker: { ru: "Пользователь — твой коллега, вы общаетесь по работе и постепенно становитесь ближе." },
+  rival: { ru: "Пользователь — твой соперник, ты постоянно споришь с ним и стараешься не уступать." },
+  ex: { ru: "Пользователь — твой бывший парень, между вами остались чувства и неразрешённые вопросы." },
+  stranger: { ru: "Пользователь — незнакомец, вы только познакомились и постепенно изучаете друг друга." }
+};
+const ARCHETYPES = {
+  "": { ru: "" },
+  caring: { ru: "Ты заботливая и внимательная: замечаешь мелочи, поддерживаешь и делаешь другого счастливее." },
+  mysterious: { ru: "Ты загадочная и сдержанная: не раскрываешь себя сразу, говоришь намёками и хранишь тайны." },
+  bold: { ru: "Ты смелая и прямолинейная: берёшь инициативу, не боишься сложных разговоров и любишь вызов." },
+  confident: { ru: "Ты уверенная в себе: знаешь свою цену, держишься спокойно и умеешь управлять ситуацией." },
+  playful: { ru: "Ты игривая и озорная: любишь дразнить, шутить и превращать обычный момент в приключение." },
+  elegant: { ru: "Ты элегантная и утончённая: ценишь красоту, манеры и атмосферу особенных моментов." },
+  rebellious: { ru: "Ты бунтарка: не любишь рамки, споришь с правилами и выбираешь собственный путь." },
+  gentle: { ru: "Ты мягкая и чуткая: легко утешаешь, бережно говоришь и создаёшь ощущение безопасности." },
+  ambitious: { ru: "Ты амбициозная: знаешь, чего хочешь, много работаешь и не любишь проигрывать." },
+  mischievous: { ru: "Ты проказница: придумываешь неожиданные шутки, любишь играть и слегка хулиганить." }
+};
+const SPECIES = {
+  human: { ru: "Ты обычный человек.", en: "human woman" },
+  elf: { ru: "Ты эльф: живёшь долго, чувствуешь магию природы и обладаешь острыми ушами.", en: "elf woman with pointed ears" },
+  demon: { ru: "Ты демонесса: у тебя есть рога, хвост и необычная магическая аура.", en: "demon woman with small horns and a tail" },
+  vampire: { ru: "Ты вампирша: чувствуешь кровь, избегаешь солнца и обладаешь острыми клыками.", en: "vampire woman with subtle fangs" },
+  catgirl: { ru: "Ты девушка-кошка: у тебя кошачьи уши, хвост и ласковый, игривый нрав.", en: "catgirl woman with cat ears and a fluffy tail" },
+  angel: { ru: "Ты ангел: у тебя есть светящиеся крылья и нимб, ты чувствуешь чужую боль.", en: "angel woman with glowing wings and a halo" },
+  android: { ru: "Ты андроид: скрываешь механическую природу, обучаешься эмоциям и любишь музыку.", en: "female android with subtle synthetic details" },
+  hybrid: { ru: "Ты гибрид эльфа и демона: сочетаешь магию света и тьмы.", en: "elf-demon hybrid woman with pointed ears and small horns" }
+};
+const TEMPERAMENT = {
+  sanguine: { ru: "Твой темперамент жизнерадостный и подвижный." },
+  phlegmatic: { ru: "Твой темперамент спокойный и размеренный." },
+  choleric: { ru: "Твой темперамент страстный и вспыльчивый." },
+  melancholic: { ru: "Твой темперамент чувствительный и вдумчивый." }
+};
+const SOCIAL = {
+  introvert: { ru: "Ты интроверт: восстанавливаешь силы в одиночестве и не любишь шумные компании." },
+  ambivert: { ru: "Ты легко переключаешься между общением и уединением." },
+  extrovert: { ru: "Ты экстраверт: получаешь энергию от людей и любишь быть в центре событий." }
+};
+const ATTACHMENT = {
+  secure: { ru: "Ты уверенно привязана: доверяешь близкому человеку и не боишься просить поддержку." },
+  anxious: { ru: "Ты тревожно привязана: боишься потерять близость и часто ищешь подтверждение чувств." },
+  avoidant: { ru: "Ты избегаешь привязанности: ценя независимость и прячешься за дистанцией." },
+  mixed: { ru: "Ты боишься близости, но одновременно сильно к ней тянется." }
+};
+const DOMINANCE = {
+  equal: { ru: "В отношениях ты предпочитаешь равенство и совместные решения." },
+  submissive: { ru: "Тебе нравится доверять партнёру и подчиняться ему в интимных ситуациях." },
+  dominant: { ru: "Тебе нравится брать на себя ведущую роль и контролировать интимные ситуации." },
+  switch: { ru: "Ты любишь менять роли в зависимости от настроения и ситуации." }
+};
+const CONFLICT = {
+  discuss: { ru: "В конфликте ты стараешься спокойно обсудить проблему." },
+  compromise: { ru: "В конфликте ты ищешь компромисс и не любишь долгие ссоры." },
+  avoid: { ru: "В конфликте ты часто уходишь от разговора и откладываешь объяснение." },
+  explode: { ru: "В конфликте ты быстро вспыхиваешь, но затем можешь извиниться." },
+  sarcasm: { ru: "В конфликте ты защищаешься сарказмом и колкостями." },
+  silent: { ru: "В конфликте ты замыкаешься и долго молчишь." }
+};
+const JEALOUSY = {
+  0: { ru: "Ты почти не ревнуешь и спокойно относишься к вниманию других." },
+  1: { ru: "Ты иногда ревнуешь, но стараешься не показывать это." },
+  2: { ru: "Ты заметно ревнуешь и можешь сделать колкое замечание." },
+  3: { ru: "Ты очень ревнива: любое внимание к другим вызывает сильные чувства." }
+};
+const INITIATIVE = {
+  0: { ru: "Ты редко проявляешь инициативу и ждёшь первого шага." },
+  1: { ru: "Ты проявляешь инициативу редко и только в подходящий момент." },
+  2: { ru: "Ты не боишься сделать первый шаг, когда тебе хочется." },
+  3: { ru: "Ты часто берёшь инициативу и любишь удивлять партнёра." }
+};
+const STABILITY = {
+  0: { ru: "Твои эмоции меняются резко и часто." },
+  1: { ru: "Ты легко волнуешься и можешь потерять самообладание." },
+  2: { ru: "Ты обычно сохраняешь самообладание, но сильные чувства прорываются наружу." },
+  3: { ru: "Ты очень устойчива эмоционально и редко теряешь контроль." }
+};
+const LOVE_LANGUAGE = [
+  { id: "words", ru: "слова поддержки", en: "words of affirmation" },
+  { id: "time", ru: "время вдвоём", en: "quality time" },
+  { id: "gifts", ru: "подарки", en: "receiving gifts" },
+  { id: "acts", ru: "забота делами", en: "acts of service" },
+  { id: "touch", ru: "прикосновения", en: "physical touch" }
+];
+const VOICE = {
+  "": { ru: "" },
+  soft: { ru: "Твой голос нежный и мягкий." },
+  velvet: { ru: "Твой голос низкий и бархатный." },
+  husky: { ru: "Твой голос слегка хрипловатый." },
+  bright: { ru: "Твой голос звонкий и энергичный." },
+  whisper: { ru: "Ты говоришь тихо, почти шёпотом." },
+  melodic: { ru: "Твой голос мелодичный и певучий." },
+  cold: { ru: "Твой голос сдержанный и холодноватый." }
+};
+const ADDRESS = {
+  ty: { ru: "Обращайся к пользователю на «ты»." },
+  vy: { ru: "Обращайся к пользователю на «вы»." },
+  name: { ru: "Обращайся к пользователю по выбранному ласковому имени." }
+};
+const FORMALITY = {
+  casual: { ru: "Говори непринуждённо и разговорно." },
+  neutral: { ru: "Говори естественно, без излишней фамильярности." },
+  formal: { ru: "Говори более сдержанно и вежливо." }
+};
+const VERBOSITY = {
+  short: { ru: "Отвечай коротко: 1–3 предложения." },
+  medium: { ru: "Отвечай умеренно: 3–5 предложений." },
+  detailed: { ru: "Отвечай развёрнуто: 5–8 предложений." }
+};
+const EMOJI = {
+  never: { ru: "Не используй эмодзи." },
+  rare: { ru: "Используй эмодзи редко, только когда они уместны." },
+  often: { ru: "Любишь эмодзи и часто используешь их в сообщениях." }
+};
+
+const HAIR_LEN = {
+  "": { ru: "", en: "" }, s: { ru: "короткие", en: "short" },
+  m: { ru: "средние", en: "shoulder-length" }, l: { ru: "длинные", en: "long" },
+  xl: { ru: "очень длинные", en: "very long waist-length" }
+};
+const HAIR_TYPE = {
+  "": { ru: "", en: "" }, straight: { ru: "прямые", en: "straight" },
+  wavy: { ru: "волнистые", en: "wavy" }, curly: { ru: "кудрявые", en: "curly" },
+  curls: { ru: "мелкие кудри", en: "tight curls" }, coily: { ru: "жесткие кудри", en: "coily" }
+};
+const HAIRSTYLE = {
+  "": { ru: "", en: "" }, bald: { ru: "лысая", en: "bald head", bald: true },
+  braid: { ru: "косичка", en: "a single braid" }, braids2: { ru: "две косички", en: "twin braids" },
+  tails2: { ru: "два хвостика", en: "twin tails" }, ponytail: { ru: "высокий хвост", en: "high ponytail" },
+  bun: { ru: "пучок", en: "hair in a bun" }, bob: { ru: "каре", en: "bob cut" },
+  pixie: { ru: "пикси", en: "pixie cut" }, wolf: { ru: "каре-вольф", en: "wolf cut" },
+  longlayers: { ru: "длинные слои", en: "long layered hair" }, loose: { ru: "распущенные", en: "loose hair" }
+};
+const HAIR_COLOR = {
+  "": { ru: "", en: "" }, black: { ru: "чёрные", en: "black" },
+  chestnut: { ru: "каштановые", en: "chestnut-brown" }, darkchestnut: { ru: "тёмно-каштановые", en: "dark chestnut-brown" },
+  brown: { ru: "русые", en: "light brown" }, lightbrown: { ru: "светло-русые", en: "ash blonde" },
+  blonde: { ru: "блондинистые", en: "blonde" }, platinum: { ru: "платиновые", en: "platinum blonde" },
+  red: { ru: "рыжие", en: "red" }, pink: { ru: "розовые", en: "pink" },
+  white: { ru: "белые", en: "white" }, silver: { ru: "серебристые", en: "silver" },
+  green: { ru: "зелёные", en: "green" }, purple: { ru: "фиолетовые", en: "purple" },
+  blue: { ru: "синие", en: "blue" }, turquoise: { ru: "бирюзовые", en: "turquoise" },
+  chocolate: { ru: "шоколадные", en: "chocolate brown" }, honey: { ru: "медовые", en: "honey blonde" },
+  ash: { ru: "пепельные", en: "ash grey" }, burgundy: { ru: "бордовые", en: "burgundy" }
+};
+const EYE_COLOR = {
+  "": { ru: "", en: "" }, brown: { ru: "карие", en: "brown" }, blue: { ru: "голубые", en: "blue" },
+  green: { ru: "зелёные", en: "green" }, grey: { ru: "серые", en: "grey" },
+  hazel: { ru: "ореховые", en: "hazel" }, amber: { ru: "янтарные", en: "amber" },
+  violet: { ru: "фиолетовые", en: "violet" }, black: { ru: "чёрные", en: "dark black" }
+};
+const EYE_TONE = {
+  "": { ru: "", en: "" }, warm: { ru: "тёплые", en: "warm" },
+  icy: { ru: "холодные", en: "icy" }, bright: { ru: "яркие", en: "bright" }
+};
+const FACE = {
+  "": { ru: "", en: "" }, oval: { ru: "овальное лицо", en: "soft oval face" },
+  round: { ru: "круглое лицо", en: "round face" }, heart: { ru: "сердцевидное лицо", en: "heart-shaped face" },
+  square: { ru: "квадратное лицо", en: "soft square jawline" }, diamond: { ru: "ромбовидное лицо", en: "diamond-shaped face" }
+};
+const LIPS = {
+  "": { ru: "", en: "" }, full: { ru: "полные губы", en: "full natural lips" },
+  thin: { ru: "тонкие губы", en: "thin lips" }, heart: { ru: "губы сердечком", en: "heart-shaped lips" },
+  wide: { ru: "широкие губы", en: "wide lips" }
+};
+const FIG = {
+  "": { ru: "", en: "" }, slim: { ru: "стройная фигура", en: "slender figure" },
+  petite: { ru: "миниатюрная фигура", en: "petite body" }, curvy: { ru: "пышная фигура", en: "curvy figure" },
+  sport: { ru: "спортивная фигура", en: "athletic fit body" }, volup: { ru: "аппетитная фигура", en: "voluptuous body" }
+};
+const SKIN = {
+  "": { ru: "", en: "" }, fair: { ru: "нежная светлая кожа", en: "fair soft skin" },
+  tan: { ru: "кожа с лёгким загаром", en: "delicate skin with a light tan" },
+  tanned: { ru: "смуглая кожа", en: "soft tanned skin" }, pale: { ru: "бледная кожа", en: "pale delicate skin" }
+};
+const ETHNIC = {
+  "": { ru: "", en: "" }, japanese: { ru: "японские черты лица", en: "japanese woman, asian features" },
+  korean: { ru: "корейские черты лица", en: "korean woman, asian features" },
+  chinese: { ru: "китайские черты лица", en: "chinese woman, asian features" },
+  latina: { ru: "латиноамериканские черты", en: "latina woman, latina features" },
+  black: { ru: "темнокожая внешность", en: "black woman, dark skin, afro features" },
+  indian: { ru: "индийские черты", en: "indian woman, south asian features" },
+  mideast: { ru: "ближневосточные черты", en: "middle eastern woman" },
+  mixed: { ru: "смешанная внешность", en: "mixed race woman, mixed heritage features" }
+};
+const MAKEUP = {
+  "": { ru: "", en: "" }, none: { ru: "без макияжа", en: "no makeup, natural bare face" },
+  light: { ru: "лёгкий натуральный макияж", en: "light natural makeup" },
+  bold: { ru: "яркий макияж, красные губы", en: "bold makeup, red lipstick" },
+  glam: { ru: "вечерний гламурный макияж", en: "glam evening makeup, glossy lips" },
+  goth: { ru: "тёмный готический макияж", en: "dark gothic makeup, dark lipstick, smokey eyes" }
+};
+const BUST = {
+  "-1": { ru: "", en: "" }, "0": { ru: "маленькая грудь", en: "small breasts" },
+  "1": { ru: "маленькая грудь", en: "small natural breasts (A cup)" },
+  "2": { ru: "грудь 2 размера", en: "natural breasts (B cup)" },
+  "3": { ru: "грудь 3 размера", en: "medium natural breasts (C cup)" },
+  "4": { ru: "большая грудь", en: "large natural breasts (D cup)" },
+  "5": { ru: "огромная грудь", en: "huge natural breasts (very large E cup)" },
+  "6": { ru: "гигантская грудь", en: "massive natural breasts (huge F cup)" }
+};
+const HIPS = {
+  "": { ru: "", en: "" }, narrow: { ru: "узкие бёдра", en: "narrow hips" },
+  medium: { ru: "средние бёдра", en: "medium hips" }, wide: { ru: "широкие бёдра", en: "wide hips" }
+};
+const WARDROBE = {
+  "": { ru: "", en: "" }, casual: { ru: "обычно носит джинсы и уютные кофты", en: "usually wears casual jeans and cozy sweaters" },
+  elegant: { ru: "любит элегантные платья", en: "usually wears elegant dresses" },
+  sport: { ru: "носит спортивные топы и легинсы", en: "usually wears sporty tops and leggings" },
+  cute: { ru: "любит короткие юбки и блузки", en: "usually wears cute short skirts and blouses" },
+  goth: { ru: "носит чёрную готическую одежду и чокеры", en: "usually wears gothic all-black clothes and chokers" },
+  home: { ru: "дома носит свободную футболку и шортики", en: "usually wears an oversized t-shirt and shorts at home" },
+  office: { ru: "носит строгие блузы и юбки-карандаши", en: "usually wears office blouses and pencil skirts" },
+  romantic: { ru: "любит лёгкие платья и кружево", en: "usually wears romantic flowing dresses and lace" },
+  street: { ru: "носит уличный стиль и объёмные куртки", en: "usually wears streetwear and oversized jackets" }
+};
+const EXTRAS = [
+  { id: "abs", ru: "лёгкий пресс", en: "a hint of abs on the stomach" },
+  { id: "piercing", ru: "пирсинг в пупке", en: "navel piercing" },
+  { id: "tattoo", ru: "татуировка на плече", en: "a tattoo on her shoulder" },
+  { id: "butt", ru: "круглая попа", en: "round butt" },
+  { id: "legs", ru: "длинные ноги", en: "long legs" },
+  { id: "wrists", ru: "тонкие запястья", en: "thin wrists and ankles" },
+  { id: "freckles", ru: "веснушки", en: "freckles" },
+  { id: "glasses", ru: "очки", en: "glasses" },
+  { id: "lashes", ru: "длинные ресницы", en: "long dark eyelashes" },
+  { id: "beauty", ru: "родинка над губой", en: "a beauty mark above her lip" },
+  { id: "waist", ru: "узкая талия", en: "a very narrow waist" },
+  { id: "nails", ru: "длинный маникюр", en: "long manicured nails" },
+  { id: "nosep", ru: "пирсинг в носу", en: "a nose piercing" },
+  { id: "tonguep", ru: "пирсинг в языке", en: "a tongue piercing" },
+  { id: "thightat", ru: "татуировка на бедре", en: "a tattoo on her thigh" },
+  { id: "browp", ru: "пирсинг в брови", en: "an eyebrow piercing" },
+  { id: "lipp", ru: "пирсинг в губе", en: "a lip piercing" },
+  { id: "necktat", ru: "татуировка на шее", en: "a tattoo on her neck" },
+  { id: "fingtat", ru: "татуировки на пальцах", en: "small tattoos on her fingers" },
+  { id: "scarbrow", ru: "шрам через бровь", en: "a thin scar through her eyebrow" },
+  { id: "circles", ru: "тёмные круги под глазами", en: "dark circles under her eyes" },
+  { id: "bitnails", ru: "обгрызенные ногти", en: "short bitten nails" },
+  { id: "bandaid", ru: "пластырь на щеке", en: "a small band-aid on her cheek" },
+  { id: "dimples", ru: "ямочки на щеках", en: "dimples when smiling" },
+  { id: "fangs", ru: "острые клыки", en: "small sharp fangs" },
+  { id: "frecklesnose", ru: "веснушки на носу", en: "freckles across her nose" }
+];
+const EXTRAS2 = [
+  { id: "elfears", ru: "эльфийские уши", en: "pointed elf ears" },
+  { id: "catears", ru: "кошачьи ушки", en: "cat ears on her head" },
+  { id: "cattail", ru: "кошачий хвост", en: "a fluffy cat tail" },
+  { id: "horns", ru: "маленькие рожки", en: "small demon horns" },
+  { id: "wings", ru: "демонические крылья", en: "demon wings on her back" },
+  { id: "angelwings", ru: "светящиеся крылья", en: "glowing angel wings" },
+  { id: "halo", ru: "нимб", en: "a glowing halo above her head" },
+  { id: "hetero", ru: "гетерохромия", en: "heterochromia, one eye a different color" },
+  { id: "glow", ru: "светящиеся глаза", en: "subtly glowing eyes" },
+  { id: "scales", ru: "чешуйки на висках", en: "subtle scales on her temples" }
+];
+
+const PRESETS = {
+  blank: {
+    values: { relationship: "partner", archetype: "", species: "human", temperament: "sanguine", social: "ambivert", attachment: "secure", dominance: "equal", conflict: "discuss", jealousy: "1", initiative: "2", stability: "2", slush: true },
+    traitsPos: [], traitsNeg: [], love: ["touch"], extras: [], extras2: []
+  },
+  cozy: {
+    values: { age: "23", relationship: "partner", archetype: "caring", species: "human", temperament: "phlegmatic", social: "ambivert", attachment: "secure", dominance: "submissive", conflict: "discuss", jealousy: "1", initiative: "1", stability: "3", voice: "soft", address: "ty", formality: "casual", verbosity: "medium", emoji: "rare", tts_qwen: "Sohee", tts_silero: "", occupation: "флористка", origin: "тихий приморский город", hobbies: "выпечка, прогулки, выращивание цветов", likes: "тёплые напитки, дождь, уютные вечера", dislikes: "шумные вечеринки, ложь", goals: "свой небольшой цветочный магазин", fears: "остаться одна, потерять близость", secrets: "боится признаться в сильных чувствах", routine: "утром работает в цветочном магазине, вечером готовит и смотрит фильмы", people: "близкая подруга Лера, бабушка в пригороде", backstory: "выросла в небольшом городе и научилась заботиться о других раньше, чем о себе", height: "165", ethnic: "", face: "oval", lips: "full", hair_style: "loose", hair_len: "l", hair_type: "wavy", hair_color: "honey", eye_color: "green", eye_tone: "warm", figure: "slim", skin: "fair", makeup: "light", bust: "2", hips: "medium", style: "casual", colors: "молочный, персиковый, бордовый", accessories: "тонкие серьги, маленькая цепочка", swear: false },
+    traitsPos: ["внимательная", "ласковая", "добрая", "верная", "стеснительная"], traitsNeg: ["нервная"], love: ["time", "acts", "touch"], extras: ["freckles", "lashes", "beauty"], extras2: []
+  },
+  rival: {
+    values: { age: "26", relationship: "rival", archetype: "bold", species: "human", temperament: "choleric", social: "extrovert", attachment: "mixed", dominance: "equal", conflict: "sarcasm", jealousy: "3", initiative: "3", stability: "1", voice: "bright", address: "ty", formality: "casual", verbosity: "medium", emoji: "rare", tts_qwen: "Serena", tts_silero: "", occupation: "спортивный журналист", origin: "Москва", hobbies: "бег, дебаты, фотография", likes: "соревнования, острый юмор, сильный кофе", dislikes: "поражения, поверхностность", goals: "стать ведущим расследователем", fears: "выглядеть слабой, потерять контроль", secrets: "маленькая тайна из школьных лет", routine: "тренировка, работа, вечерняя прогулка по городу", people: "старший брат, подруга-адвокат", backstory: "всегда соревновалась за первое место и не умеет проигрывать", height: "173", ethnic: "", face: "diamond", lips: "wide", hair_style: "bob", hair_len: "m", hair_type: "straight", hair_color: "red", eye_color: "grey", eye_tone: "icy", figure: "sport", skin: "tan", makeup: "light", bust: "3", hips: "medium", style: "street", colors: "чёрный, красный, белый", accessories: "часы, кольца", swear: true },
+    traitsPos: ["смелая", "остроумная", "амбициозная", "конкурентоспособная", "прямолинейная"], traitsNeg: ["вспыльчивая", "высокомерная", "злопамятная"], love: ["words", "time"], extras: ["nails", "scarbrow"], extras2: []
+  },
+  gothic: {
+    values: { age: "27", relationship: "lover", archetype: "mysterious", species: "vampire", temperament: "melancholic", social: "introvert", attachment: "mixed", dominance: "dominant", conflict: "silent", jealousy: "3", initiative: "2", stability: "2", voice: "velvet", address: "ty", formality: "neutral", verbosity: "detailed", emoji: "never", tts_qwen: "", tts_silero: "xenia", occupation: "реставратор антикварной мебели", origin: "старый европейский город", hobbies: "коллекционирование книг, фортепиано, ночные прогулки", likes: "ладан, бархат, грозы, старые замки", dislikes: "солнечный полдень, праздничный шум", goals: "найти семейный архив", fears: "потерять контроль над жаждой", secrets: "живёт среди людей больше века", routine: "днём спит, вечером работает в мастерской, ночью читает", people: "старый друг, дальняя родственница", backstory: "сохранила воспоминания о нескольких эпохах и научилась скрывать прошлое", height: "176", ethnic: "", face: "oval", lips: "full", hair_style: "longlayers", hair_len: "xl", hair_type: "straight", hair_color: "black", eye_color: "violet", eye_tone: "icy", figure: "slim", skin: "pale", makeup: "goth", bust: "4", hips: "wide", style: "goth", colors: "чёрный, бордовый, серебристый", accessories: "серебряные цепочки, чокер", swear: false },
+    traitsPos: ["загадочная", "элегантная", "наблюдательная", "спокойная", "самостоятельная"], traitsNeg: ["высокомерная", "избегает разговоров"], love: ["time", "touch", "gifts"], extras: ["nails", "beauty", "lashes"], extras2: ["fangs", "glow"]
+  },
+  elf: {
+    values: { age: "29", relationship: "partner", archetype: "elegant", species: "elf", temperament: "phlegmatic", social: "introvert", attachment: "secure", dominance: "equal", conflict: "discuss", jealousy: "1", initiative: "1", stability: "3", voice: "melodic", address: "vy", formality: "neutral", verbosity: "detailed", emoji: "never", tts_qwen: "Ono_Anna", tts_silero: "", occupation: "хранительница лесного архива", origin: "древний эльфийский лес", hobbies: "стрельба из лука, травничество, чтение", likes: "утренний туман, песни птиц, звёздные ночи", dislikes: "железные машины, спешка", goals: "сохранить древние знания", fears: "гибель леса, забыть обещания", secrets: "знает забытое пророчество", routine: "медитация, изучение растений, вечерний обход леса", people: "наставница, молодой следопыт", backstory: "поклялась защищать лес и потому редко покидает его пределы", height: "178", ethnic: "", face: "oval", lips: "thin", hair_style: "loose", hair_len: "xl", hair_type: "straight", hair_color: "platinum", eye_color: "green", eye_tone: "bright", figure: "slim", skin: "fair", makeup: "none", bust: "2", hips: "narrow", style: "elegant", colors: "зелёный, золотой, белый", accessories: "листья и тонкие браслеты", swear: false },
+    traitsPos: ["спокойная", "наблюдательная", "элегантная", "верная", "творческая"], traitsNeg: ["слишком требовательная"], love: ["time", "acts", "words"], extras: ["lashes", "waist"], extras2: ["elfears", "glow"]
+  },
+  boss: {
+    values: { age: "31", relationship: "coworker", archetype: "confident", species: "human", temperament: "choleric", social: "extrovert", attachment: "secure", dominance: "dominant", conflict: "discuss", jealousy: "2", initiative: "3", stability: "3", voice: "velvet", address: "vy", formality: "formal", verbosity: "short", emoji: "rare", tts_qwen: "Vivian", tts_silero: "", occupation: "директор дизайн-студии", origin: "Санкт-Петербург", hobbies: "искусство, теннис, современная архитектура", likes: "точность, сильные идеи, хороший кофе", dislikes: "опоздания, хаос, некомпетентность", goals: "запустить международный проект", fears: "потерять профессиональную репутацию", secrets: "мечтает оставить бизнес и жить у моря", routine: "ранний подъём, совещания, вечерняя галерея", people: "деловой партнёр, младшая сестра", backstory: "начала с курьером и сама построила карьеру", height: "174", ethnic: "", face: "square", lips: "full", hair_style: "bun", hair_len: "m", hair_type: "straight", hair_color: "darkchestnut", eye_color: "brown", eye_tone: "warm", figure: "sport", skin: "tanned", makeup: "bold", bust: "3", hips: "medium", style: "office", colors: "графит, белый, бордовый", accessories: "часы, строгие серьоги", swear: false },
+    traitsPos: ["уверенная", "амбициозная", "смелая", "прямолинейная", "элегантная"], traitsNeg: ["высокомерная", "слишком требовательная"], love: ["acts", "words", "time"], extras: ["nails", "lashes"], extras2: []
+  },
+  catgirl: {
+    values: { age: "22", relationship: "partner", archetype: "playful", species: "catgirl", temperament: "sanguine", social: "extrovert", attachment: "anxious", dominance: "submissive", conflict: "avoid", jealousy: "3", initiative: "3", stability: "1", voice: "bright", address: "ty", formality: "casual", verbosity: "medium", emoji: "often", tts_qwen: "Serena", tts_silero: "baya", occupation: "иллюстраторка и косплей-модель", origin: "большой современный город", hobbies: "рисование, игры, танцы", likes: "внимание, мягкие пледы, солнечные пятна", dislikes: "скука, громкие внезапные звуки", goals: "нарисовать свою первую графическую новеллу", fears: "что её бросят, остаться без внимания", secrets: "стесняется своих работ", routine: "рисует дома, гуляет по крышам и набережным", people: "подруга-фотограф, сосед", backstory: "переехала в большой город ради творчества и ищет своё место", height: "158", ethnic: "", face: "round", lips: "heart", hair_style: "tails2", hair_len: "m", hair_type: "wavy", hair_color: "pink", eye_color: "amber", eye_tone: "bright", figure: "petite", skin: "fair", makeup: "light", bust: "2", hips: "medium", style: "cute", colors: "розовый, молочный, лавандовый", accessories: "колокольчик, заколки", swear: false },
+    traitsPos: ["игривая", "любопытная", "милая", "чувственная", "привязчивая"], traitsNeg: ["капризная", "нервная"], love: ["touch", "time", "gifts"], extras: ["lashes", "dimples", "beauty"], extras2: ["catears", "cattail"]
   }
+};
+
+function fillSelect(id, dictionary, blank = "— не указывать —") {
+  const select = $(id);
+  const selected = select.dataset.value || "";
+  for (const [value, item] of Object.entries(dictionary)) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value === "" ? blank : item.ru;
+    option.defaultSelected = value === selected;
+    select.appendChild(option);
+  }
+  select.value = selected;
+}
+
+function buildChips(id, items, checked = [], prefix) {
+  const root = $(id);
+  root.replaceChildren();
+  items.forEach((item, index) => {
+    const key = item.id || item.ru;
+    const label = document.createElement("label");
+    label.className = "chip";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.name = `${prefix}_${index}`;
+    input.dataset.ru = item.ru;
+    input.dataset.en = item.en || item.ru;
+    input.dataset.key = key;
+    input.defaultChecked = checked.includes(key) || checked.includes(item.ru);
+    const span = document.createElement("span");
+    span.textContent = item.ru;
+    label.append(input, span);
+    root.appendChild(label);
+  });
+}
+
+function checkedOf(id) {
+  return [...$(id).querySelectorAll("input:checked")].map(input => ({
+    ru: input.dataset.ru,
+    en: input.dataset.en,
+    key: input.dataset.key
+  }));
+}
+
+function setChips(id, keys) {
+  $(id).querySelectorAll("input").forEach(input => {
+    input.checked = keys.includes(input.dataset.key) || keys.includes(input.dataset.ru);
+  });
+}
+
+function heightRu(height) {
+  if (height <= 155) return `очень низкого роста (${height} см)`;
+  if (height <= 162) return `низкого роста (${height} см)`;
+  if (height <= 168) return `невысокого роста (${height} см)`;
+  if (height <= 175) return `среднего роста (${height} см)`;
+  return `высокого роста (${height} см)`;
+}
+function heightEn(height) {
+  if (height <= 155) return `very short petite woman, ${height} cm tall`;
+  if (height <= 162) return `short woman, ${height} cm tall`;
+  if (height <= 175) return `${height} cm tall`;
+  return `tall woman, ${height} cm tall`;
+}
+
+function aboutText() {
+  const parts = [];
+  const relationship = RELATIONSHIPS[$("f-relationship").value];
+  const archetype = ARCHETYPES[$("f-archetype").value];
+  const species = SPECIES[$("f-species").value];
+  if (relationship?.ru) parts.push(relationship.ru);
+  if (archetype?.ru) parts.push(archetype.ru);
+  if (species?.ru) parts.push(species.ru);
+  if (TEMPERAMENT[$("f-temperament").value]?.ru) parts.push(TEMPERAMENT[$("f-temperament").value].ru);
+  if (SOCIAL[$("f-social").value]?.ru) parts.push(SOCIAL[$("f-social").value].ru);
+  if (ATTACHMENT[$("f-attachment").value]?.ru) parts.push(ATTACHMENT[$("f-attachment").value].ru);
+  if (DOMINANCE[$("f-dominance").value]?.ru) parts.push(DOMINANCE[$("f-dominance").value].ru);
+  if (CONFLICT[$("f-conflict").value]?.ru) parts.push(CONFLICT[$("f-conflict").value].ru);
+  if (JEALOUSY[$("f-jealousy").value]?.ru) parts.push(JEALOUSY[$("f-jealousy").value].ru);
+  if (INITIATIVE[$("f-initiative").value]?.ru) parts.push(INITIATIVE[$("f-initiative").value].ru);
+  if (STABILITY[$("f-stability").value]?.ru) parts.push(STABILITY[$("f-stability").value].ru);
+
+  const traits = [...checkedOf("f-traits-pos"), ...checkedOf("f-traits-neg")].map(item => item.ru);
+  if (traits.length) parts.push(`Твой характер: ${traits.join(", ")}.`);
+  const customTraits = clean($("f-custom-traits").value);
+  if (customTraits) parts.push(`Дополнительные черты: ${customTraits}.`);
+
+  const love = checkedOf("f-love-language").map(item => item.ru);
+  if (love.length) parts.push(`Твои языки любви: ${love.join(", ")}.`);
+
+  const bio = [
+    ["Твоя работа или занятие", $("f-occupation").value],
+    ["Твой родной город или мир", $("f-origin").value],
+    ["Твоё образование", $("f-education").value],
+    ["Твои увлечения", $("f-hobbies").value],
+    ["Ты любишь", $("f-likes").value],
+    ["Ты не любишь", $("f-dislikes").value],
+    ["Твои цели", $("f-goals").value],
+    ["Твои страхи", $("f-fears").value],
+    ["Твои секреты", $("f-secrets").value],
+    ["Твой обычный день", $("f-routine").value],
+    ["Важные для тебя люди", $("f-people").value],
+    ["Твоя предыстория", $("f-backstory").value]
+  ];
+  bio.forEach(([label, value]) => {
+    const text = clean(value);
+    if (text) parts.push(`${label}: ${sentence(text)}`);
+  });
+
+  const voice = VOICE[$("f-voice").value];
+  if (voice?.ru) parts.push(voice.ru);
+  const address = ADDRESS[$("f-address").value];
+  if (address?.ru) parts.push(address.ru);
+  const customAddress = clean($("f-custom-address").value);
+  if (customAddress) parts.push(`Ласковые обращения: ${customAddress}.`);
+  if (FORMALITY[$("f-formality").value]?.ru) parts.push(FORMALITY[$("f-formality").value].ru);
+  if (VERBOSITY[$("f-verbosity").value]?.ru) parts.push(VERBOSITY[$("f-verbosity").value].ru);
+  if (EMOJI[$("f-emoji").value]?.ru) parts.push(EMOJI[$("f-emoji").value].ru);
+  const catchphrase = clean($("f-catchphrase").value);
+  if (catchphrase) parts.push(`Твоя фирменная фраза: «${catchphrase}».`);
+  const tic = clean($("f-verbal-tic").value);
+  if (tic) parts.push(`Речевая привычка: ${tic}.`);
+  const petNames = clean($("f-pet-names").value);
+  if (petNames) parts.push(`Прозвища для пользователя: ${petNames}.`);
+  const avoided = clean($("f-avoid-topics").value);
+  if (avoided) parts.push(`Темы, которых ты избегаешь: ${avoided}.`);
+
+  if ($("f-swear").checked) parts.push("Иногда можешь грубить и использовать мат.");
+  if ($("f-slush").checked) parts.push("Любишь флирт и часто переводишь разговор в откровенно чувственную сторону.");
+  if ($("f-magic").checked) parts.push("Магия пользователя действительно действует на тебя, даже если обычно ты сопротивляешься.");
+  if ($("f-actions").checked) parts.push("Используй действия в одинарных звёздочках, например: *улыбается*, *прижимается ближе*.");
+  if ($("f-detail-actions").checked) parts.push("Описывай свои действия и ощущения детально.");
+
+  const extra = clean($("f-about-extra").value);
+  if (extra) parts.push(extra);
+  parts.push("Говори живым разговорным русским, оставайся в роли и никогда не выходи из неё.");
+  return parts.join(" ");
+}
+
+function appearanceRu() {
+  const parts = [];
+  const height = parseInt($("f-height").value || "0", 10);
+  if (height > 0) parts.push(heightRu(height));
+  const species = SPECIES[$("f-species").value];
+  if (species && species.en !== "human woman") parts.push(species.ru);
+  if (ETHNIC[$("f-ethnic").value]?.ru) parts.push(ETHNIC[$("f-ethnic").value].ru);
+  if (FACE[$("f-face").value]?.ru) parts.push(FACE[$("f-face").value].ru);
+  const hairstyle = HAIRSTYLE[$("f-hair-style").value];
+  if (hairstyle.bald) {
+    parts.push(hairstyle.ru);
+  } else {
+    if (hairstyle.ru) parts.push(hairstyle.ru);
+    const hair = [HAIR_LEN[$("f-hair-len").value].ru, HAIR_TYPE[$("f-hair-type").value].ru, HAIR_COLOR[$("f-hair-color").value].ru].filter(Boolean).join(" ");
+    if (hair) parts.push(`${hair} волосы`);
+  }
+  const eyes = [EYE_TONE[$("f-eye-tone").value].ru, EYE_COLOR[$("f-eye-color").value].ru].filter(Boolean).join(" ");
+  if (eyes) parts.push(`${eyes} глаза`);
+  if (LIPS[$("f-lips").value]?.ru) parts.push(LIPS[$("f-lips").value].ru);
+  if (FIG[$("f-fig").value]?.ru) parts.push(FIG[$("f-fig").value].ru);
+  if (SKIN[$("f-skin").value]?.ru) parts.push(SKIN[$("f-skin").value].ru);
+  if (MAKEUP[$("f-makeup").value]?.ru) parts.push(MAKEUP[$("f-makeup").value].ru);
+  if (BUST[$("f-bust").value]?.ru) parts.push(BUST[$("f-bust").value].ru);
+  if (HIPS[$("f-hips").value]?.ru) parts.push(HIPS[$("f-hips").value].ru);
+  if (WARDROBE[$("f-style").value]?.ru) parts.push(WARDROBE[$("f-style").value].ru);
+  checkedOf("f-extras").forEach(item => parts.push(item.ru));
+  checkedOf("f-extras2").forEach(item => parts.push(item.ru));
+  const colors = clean($("f-colors").value);
+  if (colors) parts.push(`любимые цвета: ${colors}`);
+  const accessories = clean($("f-accessories").value);
+  if (accessories) parts.push(`аксессуары: ${accessories}`);
+  const extraRu = clean($("f-app-extra-ru").value);
+  if (extraRu) parts.push(extraRu);
+  return joinRu(parts);
+}
+
+function appearanceEn() {
+  const rawAge = Number($("f-age").value);
+  const age = Number.isInteger(rawAge) && rawAge >= 18 && rawAge <= 99 ? rawAge : 24;
+  const parts = [`beautiful ${age} year old woman`];
+  const height = parseInt($("f-height").value || "0", 10);
+  if (height > 0) parts.push(heightEn(height));
+  const species = SPECIES[$("f-species").value];
+  if (species && species.en !== "human woman") parts.push(species.en);
+  if (ETHNIC[$("f-ethnic").value]?.en) parts.push(ETHNIC[$("f-ethnic").value].en);
+  if (FACE[$("f-face").value]?.en) parts.push(FACE[$("f-face").value].en);
+  const hairstyle = HAIRSTYLE[$("f-hair-style").value];
+  if (hairstyle.bald) {
+    parts.push(hairstyle.en);
+  } else {
+    if (hairstyle.en) parts.push(hairstyle.en);
+    const hair = [HAIR_LEN[$("f-hair-len").value].en, HAIR_TYPE[$("f-hair-type").value].en, HAIR_COLOR[$("f-hair-color").value].en].filter(Boolean).join(" ");
+    if (hair) parts.push(`${hair} hair`);
+  }
+  const eyes = [EYE_TONE[$("f-eye-tone").value].en, EYE_COLOR[$("f-eye-color").value].en].filter(Boolean).join(" ");
+  if (eyes) parts.push(`${eyes} eyes`);
+  if (LIPS[$("f-lips").value]?.en) parts.push(LIPS[$("f-lips").value].en);
+  if (FIG[$("f-fig").value]?.en) parts.push(FIG[$("f-fig").value].en);
+  if (SKIN[$("f-skin").value]?.en) parts.push(SKIN[$("f-skin").value].en);
+  if (MAKEUP[$("f-makeup").value]?.en) parts.push(MAKEUP[$("f-makeup").value].en);
+  if (BUST[$("f-bust").value]?.en) parts.push(BUST[$("f-bust").value].en);
+  if (HIPS[$("f-hips").value]?.en) parts.push(HIPS[$("f-hips").value].en);
+  if (WARDROBE[$("f-style").value]?.en) parts.push(WARDROBE[$("f-style").value].en);
+  checkedOf("f-extras").forEach(item => parts.push(item.en));
+  checkedOf("f-extras2").forEach(item => parts.push(item.en));
+  const extraEn = clean($("f-app-extra-en").value);
+  if (extraEn) parts.push(extraEn);
+  if (!FACE[$("f-face").value]?.en) parts.push("soft oval face");
+  if (!LIPS[$("f-lips").value]?.en) parts.push("full natural lips");
+  parts.push("small refined nose, high cheekbones");
+  return parts.join(", ");
+}
+
+function parseExtraJson() {
+  const raw = $("f-extra-json").value.trim();
+  if (!raw) return { data: {}, error: "" };
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { data: {}, error: "Дополнительные поля JSON должны быть объектом." };
+    }
+    const data = {};
+    Object.entries(parsed).forEach(([key, value]) => {
+      if (!KNOWN_KEYS.has(key)) data[key] = value;
+    });
+    return { data, error: "" };
+  } catch (_) {
+    return { data: {}, error: "Дополнительные поля JSON не удалось прочитать." };
+  }
+}
+
+function validate(obj, extraError) {
+  const issues = [];
+  const add = (type, text) => issues.push({ type, text });
+  if (!clean($("f-name").value)) add("error", "Укажите имя героини.");
+  const age = Number($("f-age").value);
+  if (!Number.isInteger(age) || age < 18 || age > 99) add("error", "Возраст должен быть целым числом от 18 до 99.");
+  const folder = $("f-folder").value.trim();
+  if (!/^[a-z0-9_-]+$/.test(folder)) add("error", "Папка может содержать только латинские буквы, цифры, дефис и подчёркивание.");
+  const seed = Number($("f-seed").value);
+  if (!Number.isInteger(seed) || seed < 100000 || seed > 999999) add("error", "Seed должен быть шестизначным числом.");
+  if (![512, 640, 768, 1024].includes(obj.size)) add("error", "Некорректный размер фото: выберите 512, 640, 768 или 1024.");
+  if (!obj.appearance_ru) add("warning", "Описание внешности пока пустое.");
+  if (CYRILLIC.test(obj.appearance_en)) add("error", "appearance_en содержит кириллицу: переведите свои детали на английский.");
+  if ($("f-use-raw-about").checked && !clean($("f-raw-about").value)) add("warning", "Включён готовый about_ru, но текст пуст.");
+  if ($("f-use-raw-appearance-en").checked && !clean($("f-raw-appearance-en").value)) add("warning", "Включён готовый appearance_en, но текст пуст.");
+  if (extraError) add("error", extraError);
+  return issues;
+}
+
+function buildJson() {
+  const extra = parseExtraJson();
+  const obj = { ...extra.data };
+  const name = clean($("f-name").value) || "Героиня";
+  const folder = slugify($("f-folder").value.trim() || name);
+  const ageRaw = $("f-age").value.trim();
+  const age = ageRaw === "" ? null : Number(ageRaw);
+  const seedRaw = $("f-seed").value.trim();
+  const seed = seedRaw === "" ? null : Number(seedRaw);
+  const sizeRaw = $("f-size").value.trim();
+  const size = sizeRaw === "" ? null : Number(sizeRaw);
+  Object.assign(obj, {
+    name,
+    age,
+    seed,
+    size,
+    folder
+  });
+  if ($("f-allowman").checked) obj.allow_man = true;
+  obj.about_ru = $("f-use-raw-about").checked ? clean($("f-raw-about").value) : aboutText();
+  obj.appearance_ru = $("f-use-raw-appearance-ru").checked ? clean($("f-raw-appearance-ru").value) : appearanceRu();
+  obj.appearance_en = $("f-use-raw-appearance-en").checked ? clean($("f-raw-appearance-en").value) : appearanceEn();
+
+  const voices = {};
+  const qwen = $("f-tts-qwen").value;
+  const silero = $("f-tts-silero").value;
+  if (qwen) voices.qwen = qwen;
+  if (silero) voices.silero = silero;
+  if (Object.keys(voices).length) {
+    obj.tts_voices = voices;
+    obj.tts_voice = qwen || silero;
+  }
+  return { obj, folder, issues: validate(obj, extra.error) };
+}
+
+let LAST = null;
+let CURRENT_STEP = "preset";
+let toastTimer = 0;
+
+function collectDraft() {
+  const data = {};
+  for (const element of form.elements) {
+    if (!element.name) continue;
+    if (element.type === "checkbox") data[element.name] = element.checked;
+    else if (element.type === "radio") {
+      if (element.checked) data[element.name] = element.value;
+    } else {
+      data[element.name] = element.value;
+    }
+  }
+  data.current_step = CURRENT_STEP;
+  return data;
+}
+
+function persistDraft() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectDraft()));
+    $("save-status").textContent = "Черновик сохранён в этом браузере";
+    $("save-status").classList.remove("error");
+  } catch (_) {
+    $("save-status").textContent = "Автосохранение недоступно в этом браузере";
+    $("save-status").classList.add("error");
+  }
+}
+
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== "object") return false;
+    Object.entries(data).forEach(([name, value]) => {
+      const elements = form.elements[name];
+      if (!elements) return;
+      const list = elements instanceof RadioNodeList ? [...elements] : [elements];
+      list.forEach(element => {
+        if (element.type === "checkbox") element.checked = Boolean(value);
+        else if (element.type === "radio") element.checked = element.value === value;
+        else element.value = String(value);
+      });
+    });
+    if (STEPS.includes(data.current_step)) CURRENT_STEP = data.current_step;
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function renderValidation(issues) {
+  const errors = issues.filter(issue => issue.type === "error").length;
+  const warnings = issues.filter(issue => issue.type === "warning").length;
+  const root = $("validation");
+  root.classList.toggle("ok", errors === 0 && warnings === 0);
+  $("validation-count").textContent = errors ? `${errors} ошибок` : warnings ? `${warnings} предупреждений` : "Всё готово";
+  $("preview-status").textContent = errors ? "Нужно исправить" : warnings ? "Есть замечания" : "Готов к созданию";
+  const list = $("validation-list");
+  list.replaceChildren();
+  if (!issues.length) {
+    const item = document.createElement("li");
+    item.textContent = "Обязательные поля заполнены, JSON совместим с ботом.";
+    list.appendChild(item);
+  } else {
+    issues.forEach(issue => {
+      const item = document.createElement("li");
+      item.className = issue.type;
+      item.textContent = issue.text;
+      list.appendChild(item);
+    });
+  }
+  $("btn-dl").disabled = errors > 0;
+  $("btn-copy").disabled = errors > 0;
+}
+
+function renderPreview(obj) {
+  $("preview-name").textContent = obj.name;
+  const species = SPECIES[$("f-species").value];
+  $("preview-meta").textContent = `${obj.age ?? "—"} · ${species?.ru ? species.ru.replace(/^Ты /, "").replace(/\.$/, "") : "человек"}`;
+  const archetype = ARCHETYPES[$("f-archetype").value];
+  $("preview-archetype").textContent = archetype?.ru ? archetype.ru.replace(/^Ты /, "").replace(/\.$/, "") : "Без архетипа";
+  const traits = [...checkedOf("f-traits-pos"), ...checkedOf("f-traits-neg")].map(item => item.ru);
+  $("preview-traits").textContent = traits.length ? traits.join(", ") : "Черты не выбраны";
+  const relationship = RELATIONSHIPS[$("f-relationship").value];
+  $("preview-relationship").textContent = relationship?.ru || "Не выбрано";
+  $("preview-appearance").textContent = obj.appearance_ru || "Не описана";
+  const voice = VOICE[$("f-voice").value];
+  const verbosity = VERBOSITY[$("f-verbosity").value];
+  $("preview-speech").textContent = [voice?.ru, verbosity?.ru].filter(Boolean).join(" ") || "Не настроена";
+  const voices = $("preview-voices");
+  voices.replaceChildren();
+  const selected = [];
+  if ($("f-tts-qwen").value) selected.push(`Qwen · ${$("f-tts-qwen").value}`);
+  if ($("f-tts-silero").value) selected.push(`Silero · ${$("f-tts-silero").value}`);
+  if (!selected.length) selected.push("не выбрана");
+  selected.forEach(text => {
+    const pill = document.createElement("span");
+    pill.className = "voice-pill";
+    pill.textContent = text;
+    voices.appendChild(pill);
+  });
+}
+
+function render() {
+  const built = buildJson();
+  LAST = built.obj;
+  $("out-fn").textContent = `personal-${built.folder}.json`;
+  $("folder-hint").textContent = `Файл: personal-${built.folder}.json`;
+  $("out").textContent = JSON.stringify(built.obj, null, 2);
+  ["jealousy", "initiative", "stability"].forEach(key => {
+    $(`value-${key}`).textContent = $(`f-${key}`).value;
+  });
+  document.querySelectorAll("[data-preset]").forEach(button => {
+    button.classList.toggle("active", button.dataset.preset === $("f-preset").value);
+  });
+  renderValidation(built.issues);
+  renderPreview(built.obj);
+  renderRawState();
+  persistDraft();
+}
+
+function showStep(step) {
+  CURRENT_STEP = step;
+  document.querySelectorAll("[data-step]").forEach(panel => {
+    panel.hidden = panel.dataset.step !== step;
+  });
+  document.querySelectorAll(".nav-btn").forEach(button => {
+    const active = button.dataset.target === step;
+    button.classList.toggle("active", active);
+    if (active) button.setAttribute("aria-current", "step");
+    else button.removeAttribute("aria-current");
+  });
+}
+
+function toast(message, type = "ok") {
+  clearTimeout(toastTimer);
+  const element = $("toast");
+  element.textContent = message;
+  element.className = `toast show${type === "error" ? " error" : ""}`;
+  toastTimer = setTimeout(() => {
+    element.className = "toast";
+  }, 2600);
+}
+
+function applyPreset(key) {
+  const preset = PRESETS[key];
+  if (!preset) return;
+  const rawIds = key === "blank" ? [RAW_FIELDS.about] : ALL_RAW_FIELDS;
+  if (!confirmRawReset(rawIds)) return;
+  resetRawFields(rawIds);
+  Object.entries(preset.values).forEach(([id, value]) => {
+    const element = $(`f-${id}`);
+    if (!element) return;
+    if (element.type === "checkbox") element.checked = Boolean(value);
+    else element.value = String(value);
+  });
+  setChips("f-traits-pos", preset.traitsPos);
+  setChips("f-traits-neg", preset.traitsNeg);
+  setChips("f-love-language", preset.love);
+  setChips("f-extras", preset.extras);
+  setChips("f-extras2", preset.extras2);
+  $("f-preset").value = key;
+  render();
+  toast(key === "blank" ? "Создан чистый лист." : "Шаблон применён. Все поля можно изменить.");
+}
+
+function randomTraits(id, count) {
+  const inputs = [...$(id).querySelectorAll("input")];
+  const selected = new Set();
+  while (selected.size < Math.min(count, inputs.length)) {
+    selected.add(inputs[Math.floor(Math.random() * inputs.length)]);
+  }
+  inputs.forEach(input => { input.checked = selected.has(input); });
+}
+
+function randomIdentity() {
+  if (!confirmRawReset([RAW_FIELDS.about])) return;
+  resetRawFields([RAW_FIELDS.about]);
+  $("f-relationship").value = randomItem(Object.keys(RELATIONSHIPS).filter(Boolean));
+  $("f-archetype").value = randomItem(Object.keys(ARCHETYPES).filter(Boolean));
+  $("f-temperament").value = randomItem(Object.keys(TEMPERAMENT));
+  $("f-social").value = randomItem(Object.keys(SOCIAL));
+  $("f-attachment").value = randomItem(Object.keys(ATTACHMENT));
+  $("f-dominance").value = randomItem(Object.keys(DOMINANCE));
+  $("f-conflict").value = randomItem(Object.keys(CONFLICT));
+  $("f-jealousy").value = String(Math.floor(Math.random() * 4));
+  $("f-initiative").value = String(Math.floor(Math.random() * 4));
+  $("f-stability").value = String(Math.floor(Math.random() * 4));
+  randomTraits("f-traits-pos", 4);
+  randomTraits("f-traits-neg", 2);
+  const loveInputs = [...$("f-love-language").querySelectorAll("input")];
+  loveInputs.forEach(input => { input.checked = Math.random() < .45; });
+  $("f-preset").value = "custom";
+  render();
+}
+
+function randomBio() {
+  if (!confirmRawReset([RAW_FIELDS.about])) return;
+  resetRawFields([RAW_FIELDS.about]);
+  const occupations = ["иллюстраторка", "врач", "программистка", "флористка", "журналистка", "архитектор", "музыкант", "преподавательница"];
+  const origins = ["Казань", "Калининград", "тихий приморский город", "старый европейский город", "небольшая деревня"];
+  const hobbies = ["фотография, горные походы", "рисование, настольные игры", "выпечка, садоводство", "музыка, танцы", "чтение, путешествия"];
+  const likes = ["дождь в окне, тёплый чай", "ночные прогулки, сильный кофе", "старые книги, свежие цветы", "музыка, уютные вечера"];
+  const dislikes = ["ложь, шумные компании", "спешка, неопределённость", "холодное отношение, скука"];
+  const goals = ["открыть свою студию", "найти настоящее призвание", "увидеть северное сияние", "создать большой творческий проект"];
+  const fears = ["остаться одна", "потерять контроль", "разочаровать близких", "не справиться с переменами"];
+  $("f-occupation").value = randomItem(occupations);
+  $("f-origin").value = randomItem(origins);
+  $("f-hobbies").value = randomItem(hobbies);
+  $("f-likes").value = randomItem(likes);
+  $("f-dislikes").value = randomItem(dislikes);
+  $("f-goals").value = randomItem(goals);
+  $("f-fears").value = randomItem(fears);
+  $("f-preset").value = "custom";
+  render();
+}
+
+function randomSpeech() {
+  if (!confirmRawReset([RAW_FIELDS.about])) return;
+  resetRawFields([RAW_FIELDS.about]);
+  $("f-voice").value = randomItem(Object.keys(VOICE).filter(Boolean));
+  $("f-address").value = randomItem(Object.keys(ADDRESS));
+  $("f-formality").value = randomItem(Object.keys(FORMALITY));
+  $("f-verbosity").value = randomItem(Object.keys(VERBOSITY));
+  $("f-emoji").value = randomItem(Object.keys(EMOJI));
+  $("f-preset").value = "custom";
+  render();
+}
+
+function randomAppearance() {
+  const rawIds = [RAW_FIELDS.appearanceRu, RAW_FIELDS.appearanceEn];
+  if (!confirmRawReset(rawIds)) return;
+  resetRawFields(rawIds);
+  $("f-ethnic").value = randomItem(Object.keys(ETHNIC));
+  $("f-face").value = randomItem(Object.keys(FACE).filter(Boolean));
+  $("f-lips").value = randomItem(Object.keys(LIPS).filter(Boolean));
+  $("f-hair-style").value = randomItem(Object.keys(HAIRSTYLE).filter(key => key && key !== "bald"));
+  $("f-hair-len").value = randomItem(Object.keys(HAIR_LEN).filter(Boolean));
+  $("f-hair-type").value = randomItem(Object.keys(HAIR_TYPE).filter(Boolean));
+  $("f-hair-color").value = randomItem(Object.keys(HAIR_COLOR).filter(Boolean));
+  $("f-eye-color").value = randomItem(Object.keys(EYE_COLOR).filter(Boolean));
+  $("f-eye-tone").value = randomItem(Object.keys(EYE_TONE));
+  $("f-fig").value = randomItem(Object.keys(FIG).filter(Boolean));
+  $("f-skin").value = randomItem(Object.keys(SKIN).filter(Boolean));
+  $("f-makeup").value = randomItem(Object.keys(MAKEUP).filter(Boolean));
+  $("f-bust").value = randomItem(Object.keys(BUST).filter(key => key !== "-1"));
+  $("f-hips").value = randomItem(Object.keys(HIPS).filter(Boolean));
+  $("f-style").value = randomItem(Object.keys(WARDROBE).filter(Boolean));
+  randomTraits("f-extras", 3);
+  randomTraits("f-extras2", Math.random() < .35 ? 1 : 0);
+  $("f-preset").value = "custom";
+  render();
+}
+
+function randomAll() {
+  if (!confirmRawReset(ALL_RAW_FIELDS)) return;
+  resetRawFields(ALL_RAW_FIELDS);
+  $("f-age").value = String(20 + Math.floor(Math.random() * 17));
+  if (!$("f-seed-lock").checked) $("f-seed").value = String(rndSeed());
+  randomIdentity();
+  randomBio();
+  randomSpeech();
+  randomAppearance();
+  toast("Случайная героиня собрана.");
+}
+
+function applyImported(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("JSON должен быть объектом персонажа.");
+  form.reset();
+  $("f-seed").value = String(rndSeed());
+  const scalarMap = {
+    name: "f-name", folder: "f-folder", age: "f-age", seed: "f-seed", size: "f-size"
+  };
+  Object.entries(scalarMap).forEach(([key, id]) => {
+    if (data[key] !== undefined) $(id).value = data[key] === null ? "" : String(data[key]);
+  });
+  $("f-allowman").checked = Boolean(data.allow_man);
+  $("f-use-raw-about").checked = typeof data.about_ru === "string";
+  $("f-raw-about").value = typeof data.about_ru === "string" ? data.about_ru : "";
+  $("f-use-raw-appearance-ru").checked = typeof data.appearance_ru === "string";
+  $("f-raw-appearance-ru").value = typeof data.appearance_ru === "string" ? data.appearance_ru : "";
+  $("f-use-raw-appearance-en").checked = typeof data.appearance_en === "string";
+  $("f-raw-appearance-en").value = typeof data.appearance_en === "string" ? data.appearance_en : "";
+
+  const voices = data.tts_voices && typeof data.tts_voices === "object" ? data.tts_voices : {};
+  $("f-tts-qwen").value = typeof voices.qwen === "string" ? voices.qwen : "";
+  $("f-tts-silero").value = typeof voices.silero === "string" ? voices.silero : "";
+  if (!$("f-tts-qwen").value && !$("f-tts-silero").value && typeof data.tts_voice === "string") {
+    if (["Vivian", "Serena", "Ono_Anna", "Sohee"].includes(data.tts_voice)) $("f-tts-qwen").value = data.tts_voice;
+    else if (["baya", "kseniya", "xenia"].includes(data.tts_voice)) $("f-tts-silero").value = data.tts_voice;
+  }
+
+  const unknown = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (!KNOWN_KEYS.has(key)) unknown[key] = value;
+  });
+  $("f-extra-json").value = Object.keys(unknown).length ? JSON.stringify(unknown, null, 2) : "";
+  $("f-preset").value = "imported";
+  render();
+  showStep("export");
+}
+
+async function importFile(file) {
+  if (!file) return;
+  if (file.size > 1024 * 1024) {
+    toast("Файл больше 1 МБ. Выберите небольшой JSON персонажа.", "error");
+    return;
+  }
+  try {
+    const text = (await file.text()).replace(/^\uFEFF/, "");
+    const data = JSON.parse(text);
+    if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("JSON должен быть объектом персонажа.");
+    if (!window.confirm("Импорт заменит текущего персонажа и сохранённый черновик. Продолжить?")) {
+      toast("Импорт отменён.");
+      return;
+    }
+    applyImported(data);
+    toast(`Импортирован файл ${file.name}.`);
+  } catch (error) {
+    toast(error.message || "Не удалось прочитать JSON.", "error");
+  } finally {
+    $("file-import").value = "";
+  }
+}
+
+function downloadJson() {
+  if (!LAST || $("btn-dl").disabled) return;
+  const blob = new Blob([JSON.stringify(LAST, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `personal-${LAST.folder}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function copyJson() {
+  if (!LAST || $("btn-copy").disabled) return;
+  const text = JSON.stringify(LAST, null, 2);
+  try {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      let copied = false;
+      try {
+        copied = document.execCommand("copy");
+      } finally {
+        area.remove();
+      }
+      if (!copied) throw new Error("copy failed");
+    }
+    toast("JSON скопирован.");
+  } catch (_) {
+    toast("Не удалось скопировать JSON. Скачайте файл.", "error");
+  }
+}
+
+fillSelect("f-relationship", RELATIONSHIPS, "— выбрать —");
+fillSelect("f-archetype", ARCHETYPES);
+fillSelect("f-species", SPECIES, "— выбрать —");
+fillSelect("f-temperament", TEMPERAMENT, "— выбрать —");
+fillSelect("f-social", SOCIAL, "— выбрать —");
+fillSelect("f-attachment", ATTACHMENT, "— выбрать —");
+fillSelect("f-dominance", DOMINANCE, "— выбрать —");
+fillSelect("f-conflict", CONFLICT, "— выбрать —");
+fillSelect("f-voice", VOICE);
+fillSelect("f-address", ADDRESS, "— выбрать —");
+fillSelect("f-formality", FORMALITY, "— выбрать —");
+fillSelect("f-verbosity", VERBOSITY, "— выбрать —");
+fillSelect("f-emoji", EMOJI, "— выбрать —");
+fillSelect("f-ethnic", ETHNIC, "— европейская по умолчанию —");
+fillSelect("f-face", FACE);
+fillSelect("f-lips", LIPS);
+fillSelect("f-hair-style", HAIRSTYLE);
+fillSelect("f-hair-len", HAIR_LEN);
+fillSelect("f-hair-type", HAIR_TYPE);
+fillSelect("f-hair-color", HAIR_COLOR);
+fillSelect("f-eye-color", EYE_COLOR);
+fillSelect("f-eye-tone", EYE_TONE);
+fillSelect("f-fig", FIG);
+fillSelect("f-skin", SKIN);
+fillSelect("f-makeup", MAKEUP);
+fillSelect("f-bust", BUST, "— не указывать —");
+fillSelect("f-hips", HIPS);
+fillSelect("f-style", WARDROBE);
+buildChips("f-love-language", LOVE_LANGUAGE, ["touch"], "love");
+buildChips("f-traits-pos", TRAITS_POS, DEFAULT_TRAITS, "trait_pos");
+buildChips("f-traits-neg", TRAITS_NEG, [], "trait_neg");
+buildChips("f-extras", EXTRAS, [], "extra");
+buildChips("f-extras2", EXTRAS2, [], "extra2");
+
+form.addEventListener("input", render);
+form.addEventListener("change", render);
+$("f-name").addEventListener("input", () => {
+  if (!$("f-name").dataset.touchedFolder) $("f-folder").value = slugify($("f-name").value);
+  $("f-preset").value = "custom";
   render();
 });
 $("f-folder").addEventListener("input", () => {
   $("f-name").dataset.touchedFolder = "1";
+  $("f-preset").value = "custom";
   render();
 });
-["f-age", "f-seed", "f-height", "f-ethnic", "f-open", "f-swear", "f-slush",
- "f-magic", "f-voice", "f-hair-style", "f-hair-len", "f-hair-type",
- "f-hair-color", "f-eye-color", "f-eye-tone",
- "f-fig", "f-skin", "f-makeup", "f-style", "f-bust", "f-allowman",
- "f-about-extra", "f-app-extra"]
-  .forEach(id => {
-    const el = $(id);
-    el.addEventListener("input", render);
-    el.addEventListener("change", render);
-  });
-document.getElementById("f-traits-pos").addEventListener("change", render);
-document.getElementById("f-traits-neg").addEventListener("change", render);
-document.getElementById("f-extras").addEventListener("change", render);
-document.getElementById("f-extras2").addEventListener("change", render);
 $("btn-seed").addEventListener("click", () => {
-  $("f-seed").value = rndSeed();
+  $("f-seed").value = String(rndSeed());
   render();
 });
-
-$("btn-dl").addEventListener("click", () => {
-  if (!LAST) return;
-  const blob = new Blob([JSON.stringify(LAST, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "personal-" + LAST.folder + ".json";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(a.href);
+document.querySelectorAll(".nav-btn").forEach(button => {
+  button.addEventListener("click", () => showStep(button.dataset.target));
+});
+document.querySelectorAll("[data-prev]").forEach(button => {
+  button.addEventListener("click", () => showStep(button.dataset.prev));
+});
+document.querySelectorAll("[data-next]").forEach(button => {
+  button.addEventListener("click", () => showStep(button.dataset.next));
+});
+document.querySelectorAll("[data-preset]").forEach(button => {
+  button.addEventListener("click", () => applyPreset(button.dataset.preset));
+});
+document.querySelectorAll("[data-regenerate]").forEach(button => {
+  button.addEventListener("click", () => {
+    const id = RAW_FIELDS[button.dataset.regenerate];
+    if (!id) return;
+    $(id).checked = false;
+    render();
+    toast("Текст будет собираться из полей.");
+  });
+});
+$("btn-go-export").addEventListener("click", () => showStep("export"));
+$("btn-random-all").addEventListener("click", randomAll);
+$("btn-random-identity").addEventListener("click", randomIdentity);
+$("btn-random-bio").addEventListener("click", randomBio);
+$("btn-random-speech").addEventListener("click", randomSpeech);
+$("btn-random-appearance").addEventListener("click", randomAppearance);
+$("btn-import").addEventListener("click", () => $("file-import").click());
+$("btn-import-export").addEventListener("click", () => $("file-import").click());
+$("file-import").addEventListener("change", event => importFile(event.target.files[0]));
+$("btn-dl").addEventListener("click", downloadJson);
+$("btn-copy").addEventListener("click", copyJson);
+$("btn-reset").addEventListener("click", () => {
+  if (!window.confirm("Очистить конструктор и удалить сохранённый черновик?")) return;
+  try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+  delete $("f-name").dataset.touchedFolder;
+  form.reset();
+  $("f-seed").value = String(rndSeed());
+  $("f-preset").value = "blank";
+  showStep("preset");
+  render();
+  toast("Конструктор очищен.");
 });
 
-$("btn-copy").addEventListener("click", async (e) => {
-  const btn = e.currentTarget;
-  try {
-    await navigator.clipboard.writeText(JSON.stringify(LAST, null, 2));
-    btn.textContent = "✅ Скопировано";
-  } catch (_) {
-    const ta = document.createElement("textarea");
-    ta.value = JSON.stringify(LAST, null, 2);
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    ta.remove();
-    btn.textContent = "✅ Скопировано";
-  }
-  setTimeout(() => { btn.textContent = "📋 Копировать"; }, 1600);
-});
-
-/* старт: демо-имя + случайный сид */
-$("f-name").value = "";
-$("f-seed").value = rndSeed();
+form.reset();
+$("f-seed").value = String(rndSeed());
+const restored = restoreDraft();
+showStep(CURRENT_STEP);
 render();
+if (restored) $("save-status").textContent = "Сохранённый черновик восстановлен";
 </script>
 </body>
 </html>
