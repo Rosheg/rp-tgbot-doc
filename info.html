@@ -1,1039 +1,416 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>rp-chat-tgbot — документация</title>
-<style>
-  :root {
-    --bg: #16171b;        /* фон страницы - тон коллажа-меню */
-    --card: #1e2026;      /* карточки секций */
-    --card2: #23252c;     /* вложенные блоки (код, таблицы) */
-    --text: #e6e6e9;
-    --muted: #9aa0ab;
-    --accent: #e05555;    /* красный акцент - как в меню бота */
-    --accent2: #7aa2f7;
-    --ok: #7dcf9a;
-    --warn: #e0b155;
-    --border: #33363f;
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0; padding: 0 0 80px;
-    background: var(--bg); color: var(--text);
-    font: 16px/1.65 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-  }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 0 22px; }
-
-  header.hero {
-    padding: 42px 0 26px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 30px;
-  }
-  header.hero h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: .3px; }
-  header.hero h1 .accent { color: var(--accent); }
-  header.hero .sub { color: var(--muted); font-size: 15px; }
-  header.hero .date {
-    display: inline-block; margin-top: 12px; padding: 4px 12px;
-    border: 1px solid var(--border); border-radius: 999px;
-    color: var(--muted); font-size: 13.5px; background: var(--card);
-  }
-  header.hero .date b { color: var(--ok); }
-
-  /* оглавление */
-  nav.toc {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 14px; padding: 18px 22px; margin: 0 0 34px;
-  }
-  nav.toc h2 { margin: 0 0 10px; font-size: 14px; text-transform: uppercase;
-               letter-spacing: 1.2px; color: var(--muted); }
-  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 40px; }
-  nav.toc li { margin: 3px 0; break-inside: avoid; }
-  nav.toc a { color: var(--accent2); text-decoration: none; }
-  nav.toc a:hover { text-decoration: underline; }
-  @media (max-width: 640px) { nav.toc ol { columns: 1; } }
-
-  section {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 14px; padding: 26px 28px; margin: 0 0 26px;
-  }
-  section > h2 {
-    margin: -26px -28px 22px; padding: 16px 28px;
-    font-size: 19px; letter-spacing: .4px;
-    border-bottom: 1px solid var(--border);
-    color: var(--accent);
-  }
-  section > h2 .num {
-    color: var(--muted); font-weight: 600; margin-right: 8px; font-size: 15px;
-  }
-  h3 { font-size: 16.5px; margin: 22px 0 8px; color: var(--accent2); }
-  p { margin: 10px 0; }
-  ul, ol { margin: 10px 0; padding-left: 24px; }
-  li { margin: 6px 0; }
-  li > ul, li > ol { margin: 4px 0; }
-  a { color: var(--accent2); }
-  b, strong { color: #fff; }
-  .muted { color: var(--muted); }
-  .ok { color: var(--ok); }
-  .warn { color: var(--warn); }
-
-  code, .path {
-    font-family: Consolas, "Cascadia Mono", "JetBrains Mono", monospace;
-    font-size: 14px; background: var(--card2);
-    border: 1px solid var(--border); border-radius: 6px;
-    padding: 1px 6px; word-break: break-all;
-  }
-  .path { color: #d3b98a; }
-  pre {
-    background: var(--card2); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 16px; overflow-x: auto;
-    font: 13.5px/1.55 Consolas, "Cascadia Mono", monospace;
-    margin: 12px 0;
-  }
-  pre code { border: 0; background: none; padding: 0; }
-
-  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14.5px; }
-  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left;
-           vertical-align: top; }
-  th { background: var(--card2); color: var(--muted); font-weight: 600;
-       text-transform: uppercase; font-size: 12.5px; letter-spacing: .8px; }
-  tr:nth-child(even) td { background: rgba(255,255,255,.015); }
-  td code { white-space: nowrap; }
-  @media (max-width: 640px) {
-    table { font-size: 13px; }
-    th, td { padding: 6px 8px; }
-  }
-
-  .callout {
-    border-left: 3px solid var(--accent); background: var(--card2);
-    border-radius: 0 10px 10px 0; padding: 12px 16px; margin: 14px 0;
-  }
-  .callout.green { border-left-color: var(--ok); }
-  .callout.yellow { border-left-color: var(--warn); }
-
-  .flow { list-style: none; padding: 0; margin: 14px 0; }
-  .flow li { position: relative; padding: 0 0 14px 34px; margin: 0; }
-  .flow li::before {
-    content: ""; position: absolute; left: 9px; top: 6px;
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--accent);
-  }
-  .flow li:not(:last-child)::after {
-    content: ""; position: absolute; left: 12.5px; top: 16px; bottom: 0;
-    width: 1px; background: var(--border);
-  }
-  .flow b { color: var(--accent2); }
-
-  .badge {
-    display: inline-block; padding: 1px 9px; border-radius: 999px;
-    font-size: 12px; border: 1px solid var(--border); background: var(--card2);
-    color: var(--muted); vertical-align: middle; white-space: nowrap;
-  }
-  .badge.red { color: #ff8a8a; border-color: #5a3131; }
-  .badge.green { color: var(--ok); border-color: #2e4d3a; }
-  .badge.yellow { color: var(--warn); border-color: #57452a; }
-
-  footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 40px; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="rp-chat-tgbot — Telegram-бот для взрослых с ролевым диалогом, локальной генерацией фото и озвучки. Актуальные команды и настройки.">
+  <meta name="color-scheme" content="dark">
+  <title>rp-chat-tgbot — документация</title>
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --panel: #131a2a;
+      --panel-2: #192238;
+      --line: #293653;
+      --text: #edf1fa;
+      --muted: #a9b5cb;
+      --accent: #a78bfa;
+      --accent-2: #67e8f9;
+      --green: #86efac;
+      --warning: #fbbf24;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 300px;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(124, 92, 255, .18), transparent 34rem),
+        radial-gradient(circle at 90% 18%, rgba(34, 211, 238, .10), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent-2); text-underline-offset: 3px; }
+    a:hover { color: #c4f5ff; }
+    code {
+      padding: .12em .38em;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0d1422;
+      color: #ddd6fe;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: .9em;
+      white-space: nowrap;
+    }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { padding: 88px 0 54px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      color: var(--accent-2);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    h1 { margin: 0; font-size: clamp(42px, 7vw, 76px); line-height: 1.02; letter-spacing: -.055em; }
+    .lead { max-width: 760px; margin: 24px 0 28px; color: var(--muted); font-size: clamp(18px, 2.2vw, 23px); }
+    .badges, .tags { display: flex; flex-wrap: wrap; gap: 9px; }
+    .badge, .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(19, 26, 42, .82);
+      padding: 7px 12px;
+      color: #d7def0;
+      font-size: 13px;
+    }
+    .badge strong { color: var(--green); }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-block: 1px solid rgba(41, 54, 83, .85);
+      background: rgba(11, 15, 26, .90);
+      backdrop-filter: blur(16px);
+    }
+    nav .wrap { display: flex; gap: 22px; overflow-x: auto; padding-block: 13px; scrollbar-width: none; }
+    nav a { color: var(--muted); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    nav a:hover { color: var(--text); }
+    main { padding: 38px 0 72px; }
+    section { margin: 0 0 28px; scroll-margin-top: 76px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(25, 34, 56, .94), rgba(19, 26, 42, .94));
+      padding: clamp(22px, 4vw, 34px);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, .14);
+    }
+    h2 { margin: 0 0 12px; font-size: clamp(25px, 3vw, 34px); line-height: 1.2; letter-spacing: -.025em; }
+    h3 { margin: 28px 0 10px; font-size: 19px; }
+    p { margin: 10px 0; color: #cfd7e8; }
+    .section-note { margin: 0 0 22px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .feature {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(11, 17, 30, .54);
+      padding: 20px;
+    }
+    .feature .icon { display: block; margin-bottom: 10px; color: var(--accent-2); font-size: 24px; }
+    .feature h3 { margin: 0 0 7px; font-size: 18px; }
+    .feature p { margin: 0; color: var(--muted); font-size: 14px; }
+    .flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 22px 0 0; padding: 0; list-style: none; counter-reset: flow; }
+    .flow li { position: relative; border: 1px solid var(--line); border-radius: 14px; background: #101827; padding: 18px 16px; color: #d9e0ef; font-size: 14px; counter-increment: flow; }
+    .flow li::before { content: counter(flow); display: grid; place-items: center; width: 28px; height: 28px; margin-bottom: 10px; border-radius: 9px; background: rgba(167, 139, 250, .16); color: #ddd6fe; font-weight: 800; }
+    .flow small { display: block; margin-top: 6px; color: var(--muted); }
+    .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 14px; }
+    table { width: 100%; border-collapse: collapse; min-width: 620px; background: rgba(10, 16, 28, .48); }
+    th, td { padding: 13px 16px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); background: rgba(25, 34, 56, .7); font-size: 12px; letter-spacing: .07em; text-transform: uppercase; }
+    td { color: #cfd7e8; font-size: 14px; }
+    td:first-child { width: 170px; }
+    tr:last-child td { border-bottom: 0; }
+    .callout { border: 1px solid rgba(251, 191, 36, .32); border-radius: 14px; background: rgba(251, 191, 36, .07); padding: 16px 18px; }
+    .callout strong { color: #fde68a; }
+    .callout p { margin: 0; }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+    .mode { border: 1px solid var(--line); border-radius: 16px; background: #101827; padding: 22px; }
+    .mode h3 { margin: 0 0 8px; }
+    .mode p { color: var(--muted); font-size: 14px; }
+    .mode .tag { display: inline-block; margin: 5px 5px 0 0; }
+    details { margin-top: 18px; border: 1px solid var(--line); border-radius: 14px; background: #101827; }
+    summary { cursor: pointer; padding: 17px 20px; color: #e6eaf4; font-weight: 700; }
+    details > div { padding: 0 20px 20px; color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chips span { border: 1px solid var(--line); border-radius: 9px; background: #141e30; padding: 6px 10px; color: #d9e1ef; font-size: 13px; }
+    ul.clean { margin: 12px 0 0; padding-left: 21px; color: #cfd7e8; }
+    ul.clean li { margin: 7px 0; }
+    .two-col { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; }
+    .button { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; border: 1px solid #43386e; border-radius: 11px; background: rgba(167, 139, 250, .13); padding: 10px 15px; color: #ede9fe; font-weight: 700; text-decoration: none; }
+    .button:hover { background: rgba(167, 139, 250, .22); }
+    footer { border-top: 1px solid var(--line); padding: 27px 0 42px; color: var(--muted); font-size: 13px; }
+    footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    @media (max-width: 820px) {
+      .hero { padding-top: 58px; }
+      .grid, .compare, .two-col { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .wrap { width: min(100% - 26px, 1120px); }
+      .hero { padding: 44px 0 34px; }
+      .flow { grid-template-columns: 1fr; }
+      nav .wrap { gap: 16px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
 </head>
 <body>
-<div class="wrap">
+  <header class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Актуально · 26.11.2026 · new lvl</div>
+      <h1>rp-chat-tgbot</h1>
+      <p class="lead">Telegram-бот для взрослых (18+) с ролевым диалогом, локальной генерацией изображений и выбором между текстовыми и голосовыми ответами.</p>
+      <div class="badges" aria-label="Краткие характеристики">
+        <span class="badge"><strong>23</strong> героини</span>
+        <span class="badge"><strong>20</strong> сюжетов</span>
+        <span class="badge"><strong>2</strong> меню</span>
+        <span class="badge">Silero + Qwen3-TTS</span>
+      </div>
+    </div>
+  </header>
 
-<header class="hero">
-  <h1>🎮 rp-chat-tgbot <span class="accent">— документация</span></h1>
-  <div class="sub">Telegram-версия десктопного RP-чата с локальными моделями ·
-    <a href="char-maker.html" style="color:var(--accent2)">🛠 конструктор персонажей (personal-&lt;имя&gt;.json)</a></div>
-  <span class="date">Обновлено: <b>25.11.2026</b></span>
-</header>
+  <nav aria-label="Разделы документации">
+    <div class="wrap">
+      <a href="#features">Возможности</a>
+      <a href="#start">Первый запуск</a>
+      <a href="#commands">Команды</a>
+      <a href="#voice">Озвучка</a>
+      <a href="#photos">Фото</a>
+      <a href="#catalog">Героини и сюжеты</a>
+      <a href="#version">Версия</a>
+    </div>
+  </nav>
 
-<nav class="toc">
-  <h2>Содержание</h2>
-  <ol>
-    <li><a href="#about">Что это</a></li>
-    <li><a href="#access">Доступ</a></li>
-    <li><a href="#queue">Очередь и нагрузка</a></li>
-    <li><a href="#start">Поток старта диалога</a></li>
-    <li><a href="#commands">Команды и кнопки</a></li>
-    <li><a href="#photo">Генерация картинок</a></li>
-    <li><a href="#world">Мир и чувства</a></li>
-    <li><a href="#format">Форматирование ответов</a></li>
-    <li><a href="#sessions">Сохранение сессии</a></li>
-    <li><a href="#dirs">Персонажи, сюжеты и папки</a></li>
-    <li><a href="#history">История правок</a></li>
-  </ol>
-</nav>
+  <main class="wrap">
+    <section id="features">
+      <div class="card">
+        <h2>Что умеет бот</h2>
+        <p class="section-note">Диалог и фото работают на локальных моделях. Состояние одежды, сцена и история остаются общими для текстовых команд, изображений и озвучки.</p>
+        <div class="grid">
+          <article class="feature">
+            <span class="icon" aria-hidden="true">◌</span>
+            <h3>Ролевой диалог</h3>
+            <p>Выбор героини и сюжета, продолжение сохранённого чата, короткие или подробные ответы и спонтанные реплики через <code>/talk</code>.</p>
+          </article>
+          <article class="feature">
+            <span class="icon" aria-hidden="true">▦</span>
+            <h3>Два меню</h3>
+            <p><code>/girls</code> показывает всех героинь коллажем, а <code>/menu2</code> — по одной с кнопками «Назад», «Выбрать!» и «Дальше».</p>
+          </article>
+          <article class="feature">
+            <span class="icon" aria-hidden="true">◫</span>
+            <h3>Фото по запросу</h3>
+            <p>Кадр по сцене, полный образ после переодевания и кроп заданного ракурса. Последний кадр можно один раз пересоздать.</p>
+          </article>
+          <article class="feature">
+            <span class="icon" aria-hidden="true">≋</span>
+            <h3>Текст или голос</h3>
+            <p>Режим выбирается перед диалогом. Для голоса доступны Silero и Qwen3-TTS с женскими голосами и готовыми образцами.</p>
+          </article>
+        </div>
+      </div>
+    </section>
 
-<!-- ============================================================= -->
-<section id="about">
-  <h2><span class="num">01</span>Что это</h2>
-  <p>Телеграм-бот для ролевого чата, работающий полностью на локальных моделях:</p>
-  <ul>
-    <li><b>текст</b> — локальная LLM (Ollama): героини ведут живой диалог,
-        сами JSON-файлы персон лежат локально;</li>
-    <li><b>фото</b> — локальный генератор изображений (sd-cli):
-        картинки рисуются по ходу сюжета;</li>
-    <li><b>сессии</b> — каждый диалог сохраняется на диск и продолжается
-        после перезапуска бота.</li>
-  </ul>
-  <p><b>Транспорт</b> — Telethon (MTProto) через локальный MTProto-прокси.
-     <span class="muted">Настройки прокси хранятся локально и намеренно не публикуются.</span></p>
-  <p>Документация обновляется после каждой правки бота — самая свежая версия всегда здесь.</p>
-</section>
-
-<!-- ============================================================= -->
-<section id="access">
-  <h2><span class="num">02</span>Доступ</h2>
-  <ul>
-    <li><b>Доступ к боту — по ключу.</b> При каждом запуске бот просит
-        ввести персональный ключ доступа.</li>
-    <li>У ключа может быть <b>лимит времени</b>: когда время выходит, бот
-        присылает фразу <i>«Время вышло. Доступ закрыт»</i> — диалог при этом
-        сохраняется, и после нового ключа можно продолжить с того же места.</li>
-    <li><b>Сессия у каждого пользователя своя</b> (персонализация по
-        Telegram ID, а не по ключу). Если бота добавить в групповой чат —
-        сессия будет общая.</li>
-    <li><b>Защита от двойного запуска:</b> пока бот запущен, второй экземпляр
-        не стартует («Бот УЖЕ ЗАПУЩЕН другим окном»). Причина: два бота на
-        одной Telegram-сессии дают ошибки «wrong session ID» и потерю сообщений.</li>
-    <li><b>Периодические предупреждения</b> «wrong session ID» в логе парами
-        сразу после «Server closed the connection» — безвредный глюк
-        переподключения через локальный прокси: бот пересоздаёт сессию и
-        продолжает работу. Опасно, только если предупреждения сыплются
-        ПОСТОЯННО и бот перестаёт отвечать.</li>
-  </ul>
-</section>
-
-<!-- ============================================================= -->
-<section id="queue">
-  <h2><span class="num">03</span>Очередь и нагрузка <span class="badge">до 3–5 юзеров</span></h2>
-  <p>Ресурсы ОДНОГО ПК: текст и фото идут по одному за раз для ВСЕХ,
-     поэтому комфортно — <b>до 3–5 пользователей</b> одновременно;
-     больше — они просто ждут в очереди.</p>
-  <ul>
-    <li><b>Единая строгая очередь генерации:</b> ВЕСЬ генерации (текст И фото)
-        идут через ОДНУ очередь, все — <b>по порядку</b>. Отказов «очередь
-        переполнена» больше НЕТ: каждый просто дожидается своего хода и
-        получает свой текст или кадр.</li>
-    <li><b>Ничего не выполняется параллельно:</b> единый GPU-замок — текст,
-        фото, страховка формата, память сюжета, спонтанные сообщения и
-        подогрев модели не пересекаются в видеопамяти (раньше параллельные
-        генерации дрались за VRAM — ПК сильно лагал).</li>
-    <li><b>Ожидание без отказов:</b> пока текст в очереди — мигает «печатает…»;
-        пока кадр в очереди — служебное «⏳ Рисую кадр… ожидай (ты N-й в
-        очереди)» приходит СРАЗУ, ещё до своего хода.</li>
-    <li><b>Подогрев модели после фото:</b> картинка выгружает текстовую модель
-        из видеопамяти (чтобы генератору фото было куда грузиться), и сразу
-        после отправки PNG бот тихо греет модель в фоне — первый текстовый
-        запрос после картинки не ждёт загрузку модели. Если в очереди уже
-        кто-то ждёт — подогрев пропускается.</li>
-    <li><b>Позиция в очереди:</b> служебное «⏳ Рисую кадр…» показывает
-        «ты N-й в очереди», если кто-то ждёт перед ним.</li>
-    <li><b>Обрезка истории:</b> диалог в сессии хранит только последние 30
-        сообщений (пользователь+героиня) — реплики не замедляются по мере
-        роста сессии, состояние сцены сохраняется полностью; при «Продолжить
-        диалог» из старых сессий подгружаются тоже последние 30.</li>
-    <li><b>Антифлуд внутри сцены:</b> не чаще 1 сообщения в 10 секунд;
-        сообщение во время «думаю» — <i>«[ещё думаю над прошлым — сейчас отвечу]»</i>.</li>
-    <li><b>Индикатор «печатает…»:</b> пока модель готовит ответ, бот каждые
-        ~4 секунды шлёт статус «печатает…» — видно, что запрос принят и
-        обрабатывается (в том числе при ожидании в очереди).</li>
-    <li><b>Ускоренные авто-кадры (15.11):</b> фоновые кадры по ходу диалога
-        рисуются на 14 шагов вместо 20 — первая картинка приходит заметно
-        быстрее; «исправить фото» и кадры по явному запросу — всегда на
-        полных шагах.</li>
-    <li><b>Пропуск фонового кадра при занятой очереди (15.11):</b> если
-        генерация чем-то занята, авто-кадр откладывается и попробует снова
-        после следующего сообщения — живые запросы никого не задерживают.</li>
-    <li><b>Ретрай Ollama (15.11):</b> разовый сбой повторяется автоматически
-        через 3 секунды — «[связь потеряна]» почти не появляется.</li>
-    <li><b>Память о юзере (15.11):</b> героиня помнит имя, характер и
-        привычки пользователя (досье обновляется раз в 20 сообщений и
-        хранится в сессии).</li>
-  </ul>
-</section>
-
-<!-- ============================================================= -->
-<section id="start">
-  <h2><span class="num">04</span>Поток старта диалога</h2>
-  <ul class="flow">
-    <li><code>/start</code></li>
-    <li><b>выбор вида меню</b> — «Все девушки» (старое <code>/girls</code>)
-        или «Постранично» (новое <code>/menu2</code>); кнопки, 1/2 или текст</li>
-    <li><b>выбор героини</b> — меню-коллаж с кнопками + список цифрами</li>
-    <li>если есть сохранение: <b>«Продолжить диалог» / «Новая сессия»</b> (кнопки или 1/2)</li>
-    <li><b>выбор сюжета</b> — кнопки по каждому сюжету + кнопка «просто чат без сюжета»</li>
-    <li><b>выбор размера фото</b> — кнопки «512x512» … «1024x1024»<br>
-        <span class="muted">если размер не канонический для героини — вопрос:
-        «Вернуть 1024x1024» / «Оставить выбранный» — кнопками</span></li>
-    <li><b>сводка настроек</b> и сцена</li>
-  </ul>
-  <p>Сюжет выбирается ПЕРЕД КАЖДЫМ НОВЫМ диалогом; пункт 0 — просто чат без сюжета.
-     При продолжении сохранённого диалога сюжет/размер подхватываются из сессии,
-     бот печатает <i>«[диалог продолжен: N сообщений подхвачено]»</i> и сводку настроек.</p>
-
-  <h3>Сводка настроек</h3>
-  <p class="muted">Печатается после выбора всех ключевых моментов:</p>
-  <pre><code>Настройки сцены:
-- Персонаж: &lt;имя&gt;, &lt;возраст&gt;
-- Сюжет: &lt;имя сюжета&gt; | без сюжета (просто чат)
-- Размер фото: &lt;W&gt;x&lt;H&gt; - кадры по кнопке «хочу фото»,
-  последний присланный можно один раз «исправить фото»</code></pre>
-
-  <h3>Экономия сообщений</h3>
-  <p>Старые меню-переходы (героини → продолжить/новая → сюжет → размер) показываются ОДНИМ меню:
-     при каждом шаге бот удаляет предыдущее меню-сообщение и присылает новое — в чате всегда
-     видно ровно одно меню. <span class="muted">(Для этих меню используется схема «удалил + новое».)</span>
-     Новое постраничное <code>/menu2</code>, наоборот, редактирует своё одно сообщение при перелистывании.</p>
-  <p>Свои ответы в меню («2», имя героини, «512x512», клики кнопок меню) пользователя тоже
-     удаляются после обработки — в чате остаётся только живое меню. Финальное
-     «Режим сцены… + сводка» и текст роли приходят обычными новыми сообщениями и не удаляются.</p>
-</section>
-
-<!-- ============================================================= -->
-<section id="commands">
-  <h2><span class="num">05</span>Команды и кнопки</h2>
-
-  <h3>Липкая клавиатура (нижние кнопки) <span class="badge green">18.11: тексты → значки</span></h3>
-  <table>
-    <tr><th style="width:180px">Кнопка</th><th>Действие</th></tr>
-    <tr><td><b>🔄</b> «исправить фото»</td><td>то же, что <code>/redo</code>: пересоздать ПОСЛЕДНИЙ присланный кадр с новым ракурсом. РОВНО ОДИН РАЗ на кадр — после использования кнопка пропадает и появляется снова только с новым кадром</td></tr>
-    <tr><td><b>🖼</b> «хочу фото»</td><td>то же, что <code>/kart</code>: кадр по ТЕКУЩЕЙ сцене диалога (с лимитом по ключу)</td></tr>
-    <tr><td><b>👀</b> «переодеться»</td><td>то же, что <code>/outfit</code>: новый наряд под сцену + кадр сразу</td></tr>
-    <tr><td><b>❓ Команды</b></td><td>список команд (<code>/help</code>); кнопка добавлена во ВСЕ меню</td></tr>
-    <tr><td><b>⛔</b> «выход»</td><td>то же, что <code>/bye</code></td></tr>
-  </table>
-  <p>Ряд 1: 🔄 (если кадр можно пересоздать) · 🖼 · 👀. Ряд 2: ❓ Команды · ⛔.
-     Легенда «текст + значок» — в самом верху <code>/help</code>. Старые
-     текстовые ярлыки по-прежнему принимаются (у юзера могла остаться прежняя
-     клавиатура).</p>
-  <p>Авто-кадры отключены (17.11): фото приходят только по кнопке 🖼 «хочу фото»
-     (с лимитом ключа), плюс 🔄 «исправить фото» и 👀 «переодеться».</p>
-
-  <p>Все меню (героини, сюжеты, размер, продолжить/новая) приходят С КНОПКАМИ и красным
-     оформлением (заголовки, эмодзи). В КАЖДОМ меню под пунктами есть ряд кнопок-этапов навигации:</p>
-  <ul>
-    <li>«Сменить героиню» — сохранить и выбрать другую (<code>/girls</code>)</li>
-    <li>«Сменить сюжет» — сменить сюжет (<code>/stories</code>)</li>
-    <li>«Размер фото» — сменить размер (<code>/size</code>)</li>
-    <li>«напоминать о себе» — тумблер <code>/talk</code> (спонтанные сообщения)</li>
-    <li>«❓ Команды» — список команд (<code>/help</code>) <span class="badge green">18.11</span></li>
-    <li>«выход» — <code>/bye</code></li>
-  </ul>
-  <p class="muted">Так проще проскочить по этапам, не печатая команды.</p>
-
-  <h3>Два меню выбора героини <span class="badge green">25.11</span></h3>
-  <div class="callout green">
-    После <code>/start</code> бот предлагает два варианта: <b>«Все девушки»</b>
-    открывает старое меню <code>/girls</code>, <b>«Постранично»</b> — новое
-    <code>/menu2</code>. Можно нажать кнопку, написать <b>1/2</b> или текстом
-    назвать вариант. Обе команды также доступны напрямую и сохраняют текущий диалог
-    перед новым выбором героини.
-  </div>
-  <table>
-    <tr><th style="width:180px">Меню</th><th>Как выглядит</th></tr>
-    <tr><td><b>«Все девушки»</b><br><code>/girls</code></td><td>знакомое меню-коллаж со всеми героинями сразу</td></tr>
-    <tr><td><b>«Постранично»</b><br><code>/menu2</code></td><td>одна героиня в одном редактируемом сообщении: фото или текстовая карточка, имя, возраст, позиция «N / всего» и кнопки «Назад» / «Выбрать!» / «Дальше»</td></tr>
-  </table>
-  <ul>
-    <li>Перелистывание <code>/menu2</code> циклическое: после последней героини
-        «Дальше» возвращает к первой, а «Назад» — к последней.</li>
-    <li>Превью <code>/menu2</code> — лёгкие JPEG из кэша, поэтому полные референсы
-        не загружаются при каждом переключении. Если фото нет, показывается текстовая карточка.</li>
-    <li>Превью <code>/menu2</code> <b>всегда без спойлера</b>, даже при включённом
-        <code>/sfw</code>. Генерируемые картинки диалога продолжают учитывать
-        <code>/sfw</code>; старое <code>/girls</code> сохраняет прежнее поведение.</li>
-    <li>Список героинь перечитывается при каждом открытии: новый
-        <code>personal-*.json</code> появляется в обоих меню без перезапуска.
-        Уже открытое меню не перерисовывается автоматически — после изменения
-        списка открой его заново.</li>
-  </ul>
-
-  <h3>Старое меню «Все девушки» (<code>/girls</code>) <span class="badge green">одно сообщение-коллаж</span></h3>
-  <div class="callout green">
-    Меню героинь — ОДНО СООБЩЕНИЕ-КОЛЛАЖ: тёмная картинка, сверху шапка
-    «КОГО ВЫБИРАЕМ СЕГОДНЯ?», ниже сетка фото девушек ДО 8 КОЛОНОК В ШИРИНУ
-    (альбомная сборка ~1720px, размер фото подстраивается, длинные имена
-    ужимаются с «…»), ПОД КАЖДЫМ ФОТО имя
-    с номером («1) Алиса, 28»); кнопки выбора прикреплены к этому же сообщению.
-    Отдельный текст/альбом не нужны.
-  </div>
-  <ul>
-    <li>Фото «в одежде» генерируются с фиксированным сидом героини —
-        внешность на фото меню та же, что и в сценах; превью лёгкие (~165 КБ
-        весь коллаж) — грузятся через прокси за секунды, пересобираются сами
-        при изменении списка героинь.</li>
-    <li>Коллаж шлётся ТОЛЬКО когда фото есть у всех героинь; иначе fallback:
-        текстовый список + альбом превью, недостающие фото догенерируются
-        ФОНОМ (~2 мин каждая) через фото-очередь (не задерживая «Хочу фото»),
-        затем старое меню удаляется и приходит свежий коллаж.</li>
-    <li>Аватарки для меню ВСЕГДА без мужчин — независимо от настроек героини.</li>
-    <li>Повторные меню открываются мгновенно (медиа кэшируется в памяти).</li>
-    <li>При выборе девушки коллаж удаляется вместе с меню.</li>
-  </ul>
-
-  <h3>Команды</h3>
-  <table>
-    <tr><th style="width:110px">Команда</th><th>Действие</th></tr>
-    <tr><td><code>/start</code></td><td><span class="badge green">25.11</span> выбрать вид меню («Все девушки» / «Постранично»), затем героиню и сюжет, начать заново</td></tr>
-    <tr><td><code>/girls</code></td><td>старое меню всех героинь: сменить героиню, сохранив текущий диалог</td></tr>
-    <tr><td><code>/menu2</code></td><td><span class="badge green">25.11</span> новое постраничное меню: одна героиня, кнопки «Назад» / «Выбрать!» / «Дальше»</td></tr>
-    <tr><td><code>/come</code></td><td><span class="badge green">20.11</span> позвать ВТОРУЮ героиню из <code>rp-people</code> в текущий диалог: <code>/come Снежана</code> (можно папку или номер из меню). Дальше обе отвечают <b>одним сообщением</b>, каждая своим блоком с именем: <b>Оля:</b> … <b>Снежана:</b> … Убрать вторую — <code>/come off</code>. Вторая героиня сохраняется в сессии и возвращается при «Продолжить диалог»; кадры в этом режиме — с двумя женщинами</td></tr>
-    <tr><td><code>/stories</code></td><td>сменить сюжет текущей героини</td></tr>
-    <tr><td><code>/size</code></td><td>сменить размер фото (с вопросом про канон)</td></tr>
-    <tr><td><code>/kart</code></td><td>«хочу фото»: кадр по ТЕКУЩЕЙ сцене (то, что происходит в диалоге прямо сейчас). Лимит — у ключа (кнопка «🖼 Фото» в меню ключей)</td></tr>
-    <tr><td><code>/custom</code></td><td><span class="badge green">23.11</span> кадр ЗАДАННОЙ части тела или ракурса <b>без лица в кадре</b>: <code>/custom грудь</code>, <code>/custom ноги снизу вверх</code>, <code>/custom попа сзади</code>, <code>/custom бёдра крупным планом</code>. Понимает реальные формулировки: падежи (<code>груди</code>, <code>жопу</code>, <code>ступнями</code>), ~60 частей тела, <b>несколько частей сразу</b> (<code>/custom попа и грудь</code>), позы и ракурсы. Одежда: <code>в трусиках</code> / <code>в лифчике</code> / <code>в чулках</code> — в кадре остаётся только эта вещь; <code>без лифчика</code> / <code>без трусиков</code> — вещь снимается вместе с зоной; <code>в одежде</code> — наряд из сцены не трогается; <code>голая</code> — нагота. По умолчанию кадр без одежды. Лицо всегда выносится за кадр, сам кадр жёстко обрезан по запрошенной части (низ — от пупка и ниже). Если запрос не распознан — бот не рисует случайное тело, а подсказывает варианты; на «лицо» отвечает «используй <code>/kart</code>». Лимит — как у <code>/kart</code></td></tr>
-    <tr><td><code>/redo</code></td><td>«исправить фото»: пересоздать ПОСЛЕДНИЙ присланный кадр с новым ракурсом, ровно один раз на кадр</td></tr>
-    <tr><td><code>/outfit</code></td><td>«переодеться»: героиня подберёт наряд под сцену (можно с пожеланием: <code>/outfit вечернее платье</code>), кадр в новом наряде сразу</td></tr>
-    <tr><td><code>/talk</code></td><td>тумблер спонтанных сообщений героини, когда молчишь</td></tr>
-    <tr><td><code>/sfw</code></td><td><span class="badge green">25.11</span> генерируемые фото по умолчанию под спойлером ТГ для всех, включая админа; первый <code>/sfw</code> выключает, следующий включает — персонально на пользователя. Превью <code>/girls</code> тоже учитывают настройку, а <code>/menu2</code> всегда показывается без спойлера</td></tr>
-    <tr><td><code>/bye</code></td><td>сохранить диалог, выйти и ПОКАЗАТЬ старое меню выбора героини <code>/girls</code></td></tr>
-    <tr><td><code>/help</code></td><td>список команд; команды с аргументами (<code>/come</code>, <code>/custom</code>, <code>/kick</code>) <b>копируются по нажатию</b>, остальные нажимаются сразу</td></tr>
-  </table>
-  <p>Все меню приходят С КНОПКАМИ, можно нажимать кнопки, а не печатать цифры.
-     Печать цифр и имён тоже работает («2», «Оля», «512x512», «просто чат без сюжета»).</p>
-</section>
-
-<!-- ============================================================= -->
-<section id="photo">
-  <h2><span class="num">06</span>Генерация картинок</h2>
-
-  <ul>
-    <li><b>Внешность (сид):</b> у каждой героини свой фиксированный сид.
-        Один сид = одно лицо/фигура при одинаковом размере; внешность
-        стабильна между запусками бота.</li>
-    <li><b>Канонический размер:</b> у каждой героини есть «родной» размер фото
-        (у всех текущих — 1024). Размер выбирается в меню при старте, но если
-        выбран не канонический — бот показывает ПОДСТЕРЕЖЕНИЕ:<br>
-        <i>«Выбранный размер отличается от канонического 1024x1024 (&lt;имя&gt;) —
-        внешность (лицо/фигура) будет другой!»</i><br>
-        Тот же сид при другом размере = другой стартовый шум = другое лицо.
-        «Эталонные» фото сняты в 1024x1024.</li>
-    <li><b>Кадры по мере диалога (обновлено 17.11):</b> авто-кадры
-        ВЫКЛЮЧЕНЫ — картинка приходит только по кнопке «хочу фото»
-        (<code>/kart</code>): бот рисует кадр немедленно из текущей
-        сцены, с лимитом по ключу. «исправить фото» и «переодеться»
-        работают как раньше.</li>
-    <li><b>«Хочу фото»</b> тоже генерирует с сидом героини (не рандом) — внешность
-        стабильна; при повторе той же сцены добавляется случайный ракурс,
-        поэтому два нажатия подряд дают похожие, но не идентичные кадры.</li>
-    <li><b>«Кадр без лица» /custom (23.11):</b> команда рисует заданную
-        часть тела или ракурс, намеренно оставляя лицо за кадром:
-        <code>/custom грудь</code>, <code>/custom ноги снизу вверх</code>,
-        <code>/custom попа сзади</code>, <code>/custom бёдра крупным планом</code>.
-        Понимает реальные формулировки: падежи (груди, жопу, попкой,
-        ступнями), около 60 частей тела (пупок, половые губы, клитор, анус,
-        икры, колени, пятки, ступни, пальцы ног, ключицы, лопатки,
-        подмышки, запястья, лобок и др.), несколько частей сразу
-        (<code>/custom попа и грудь</code> — кадр по обеим), позы
-        («раздвинутые ноги», «лежит на спине») и ракурсы (снизу вверх,
-        сверху вниз, сзади, спереди, сбоку, крупным планом, макро); можно
-        писать и по-английски (<code>/custom left thigh from below</code>).
-        Одежда в запросе: «в трусиках», «в лифчике», «в чулках», «в платье» —
-        в кадре остаётся только запрошенная вещь; «без лифчика»,
-        «без трусиков» — вещь снимается вместе с зоной (верх/низ), остальное
-        остаётся; «в одежде» — наряд из сцены не трогается; «голая»,
-        «без одежды» — нагота целиком. По умолчанию кадр без одежды, и
-        одежда из <code>[STATE]</code> вырезается, поэтому в промпте больше
-        нет конфликта «wearing a dress» + «no clothing covering».
-        Лицо всегда исключается и позитивом, и негативом. Если запрос не
-        распознан («рот», «боевой вертолёт») — бот не рисует случайное тело,
-        а подсказывает, что можно попросить. С 20.11 кадр жёстко обрезан по
-        запрошенной части тела (низ — от пупка и ниже, грудь — верх тела,
-        живот — середина), поэтому <code>/custom вагина</code> больше не
-        рисует кадр выше пупка. Если написать «лицо» — команда предложит
-        <code>/kart</code>.</li>
-    <li><b>Флешбэки / селфи / стикеры (15.11):</b>
-        сейчас выключены вместе с авто-кадрами — механики остались в
-        коде и вернутся с включением авто-кадров.</li>
-    <li><b>Одежда больше не «мигает» между кадрами (18.11):</b> охрана
-        состояния чинит [STATE] модели — выпавшие предметы одежды
-        возвращаются автоматически (расширенный список: купальники,
-        боди, платья, сапоги и т.д.), если их явно не сняли в сцене.
-        Промпт в логе теперь печатается целиком — раньше обрезался и
-        выглядел «неполным».</li>
-    <li><b>Фото-фичи роли включены раздельно (18.11):</b> авто-кадры
-        сцены остались выключенными, но селфи (героиня сама фоткает
-        себя по ходу диалога), стикеры-реакции (мини-кадр-эмоция
-        512×512 на короткие эмоциональные реплики) и флешбэки
-        (винтажный кадр на «вспоминаю…») теперь работают — каждый на
-        своём тумблере, идут на сервер друга и не задерживают текст.</li>
-    <li><b>Реплика = состоянию (18.11):</b> героиня больше не
-        фантазирует про одежду, которой на ней нет — железное правило
-        состояния теперь распространяется и на русскую речь, а название
-        наряда из «переодеться» запоминается по-русски и подмешивается
-        в контекст (может назвать наряд своими словами).</li>
-    <li><b>«Покажи прямо в камеру» = крупный план (18.11):</b> попроси
-        героиню показать себя в камеру или крупным планом — ближайший
-        кадр снимется крупным планом с прямым взглядом в объектив.
-        Работает для «хочу фото», авто-кадров и «переодеться»; запрос
-        старше 3 сообщений перестаёт действовать.</li>
-    <li><b>Персонажи «горячие» (18.11):</b> новая героиня появляется в
-        меню сама, как только её JSON положен в папку персонажей — рестарт
-        бота не нужен. Правки JSON уже выбранной героини (внешность,
-        приветствие, системный промпт) тоже подхватываются на лету —
-        активная сессия не падает, даже если файл временно сломан или
-        удалён.</li>
-    <li><b>Генерация может уехать на второй ПК (17.11):</b> фото способно
-        рисоваться на выделенном сервере (например, RTX 5070 Ti) по сети,
-        пока текст работает на основном ПК — картинка не задерживает
-        ответы. Сервер просыпается/мигнул — до 5 попыток подключения
-        через 5 секунд; недоступен окончательно — кадр автоматически
-        рисуется локально (минуту без лишних пингов), для юзера разницы
-        нет. Текст при этом всегда наготове: текстовая модель живёт в
-        видеопамяти постоянно (18.11), перезагрузки после простоя нет.</li>
-    <li><b>«Переодеться» (15.11, фикс 18.11):</b> кнопка на клавиатуре или
-        <code>/outfit</code> (можно с пожеланием: «вечернее платье») — героиня
-        подбирает наряд под текущую сцену и сразу приходит кадр в новой
-        одежде. Дальше она ходит в нём по сюжету. Повторное «переодеться»
-        не сработает, пока кадр смены не доставлен («героиня уже
-        переодевается»), кулдаун 60 сек считается от доставленного кадра;
-        сразу после нажатия приходит «👗 Подбираю наряд под сцену…».</li>
-    <li><b>Подпись под кадром (16.11):</b> каждое фото героини приходит с её
-        собственной подписью одной строкой — флирт, настроение или
-        комментарий к кадру от первого лица.</li>
-    <li><b>Эволюция внешности (15.11):</b> состояние героини отражает следы
-        событий — мокрые волосы после душа/дождя, помятая одежда,
-        растрёпанные пряди, усталость.</li>
-    <li><b>Свет по времени суток (15.11):</b> кадры рисуются с освещением
-        реального времени: утром мягкий свет, днём естественный, вечером
-        золотой час, ночью приглушённый тёплый. Если сцена сама задала
-        время — оно в приоритете.</li>
-  </ul>
-
-  <div class="callout">
-    <b>ЗОЛОТОЕ ПРАВИЛО ВСЕХ СЦЕН:</b> на фото НИКОГДА не рисуются мужчины — только героиня,
-    одна в кадре. Защита в ТРИ уровня:
-    <ol>
-      <li><b>систем-промпт героини:</b> сцены описываются так, будто героиню
-          снимают сбоку, а партнёр за кадром — модель рисует всё, что
-          упомянуто в описании сцены;</li>
-      <li><b>промпт генерации:</b> позитив «solo, single person composition…
-          absolutely no men anywhere», расширенный негатив: man, male torso,
-          male legs, male arms, standing man, second person, couple,
-          extra person, cropped body at the edge of frame; с 20.11 ещё и
-          futanari, shemale, dickgirl, hermaphrodite, penis, male genitalia,
-          «woman with a penis» — вторая <b>женщина</b> в кадре допустима,
-          но только с женской анатомией;</li>
-      <li><b>кодовая чистка</b> перед генерацией: из промпта вычесываются все
-          мужские слова (границы слов, «her» не задевается). Сцены старых
-          сессий, где мужчина уже упомянут, чистятся тем же правилом.
-          С 20.11 связки «предлог + man» убираются целиком, а не оставляют
-          обрывок: <code>in front of a man</code> → <code>in front of the
-          camera</code>, <code>with a man</code> → пусто. Раньше хвост
-          «in front of a» заставлял модель дорисовывать второго человека.</li>
-    </ol>
-    <span class="muted">Энкодер генератора — LLM (Qwen), не CLIP: токен-весы вида
-    <code>(man:1.5)</code> там НЕ работают, работают только естественные слова.</span>
-  </div>
-
-  <ul>
-    <li><b>Фигура героини:</b> описание внешности из JSON персоны подставляется
-        В КАЖДЫЙ промпт генерации (якорь тела/лица) — без него фигура
-        «плывает» (потеря груди, роста, телосложения).</li>
-    <li><b>Якорь в конце промпта:</b> описание внешности идёт ПОСЛЕ текста
-        сцены — у энкодера ближе к концу внимание сильнее, причёска и
-        уникальные детали (клыки, шрамы, пирсинг, гетерохромия) не
-        размываются текстом сцены.</li>
-    <li><b>Внешность — только английский:</b> русский текст в поле
-        <code>appearance_en</code> фото-модель молча не понимает и такие
-        детали не рисует (бот предупреждает об этом в логе при загрузке).</li>
-    <li><b>Память об одежде:</b> текущее состояние (что снято/надето/поза)
-        подмешивается в систем-промпт КАЖДОГО запроса к модели с ЖЕЛЕЗНЫМ
-        правилом: список не сокращать и не дополнять самому, дословно
-        переносить все пункты, откат уровня голизны (naked → topless)
-        невозможен, снятое не возвращается.</li>
-    <li><b>Страховка формата:</b> маленькая модель при длинных правилах иногда
-        пропускает описание сцены или наоборот пишет ТОЛЬКО сцену без реплики.
-        Если в ответе нет сцены или нет текста роли — бот делает ОДИН узкий
-        повторный запрос (короткий промпт + последние 6 сообщений) и
-        достраивает ответ.</li>
-    <li><b>Вариация кадра:</b> сид героини фиксирован, поэтому одинаковая сцена =
-        одинаковая картинка. Если промпт совпал с предыдущим (модель дублирует
-        сцену на разные запросы), бот добавляет случайный ракурс (8 вариантов) —
-        кадр меняется, внешность та же.</li>
-    <li><b>Охрана каждой реплики:</b> новое состояние сцены сравнивается с прежним.
-        Если по сцене героиня НЕ раздевается, то:
-        <ol>
-          <li>потерянные пункты (stockings, skirt, bra…) возвращаются дословно
-              («naked, wearing black stockings» не вырождается в «naked»);</li>
-          <li>откат наготы подавляется: вместо деградировавшего состояния
-              («naked» → «topless») берётся прежнее целиком (+ только позы);</li>
-          <li>обоснованное снятие/надевание по сцене проходит без вмешательства.</li>
+    <section id="start">
+      <div class="card">
+        <h2>Как начать</h2>
+        <p class="section-note">Команда <code>/start</code> открывает настройку. Для нового диалога последовательность выглядит так.</p>
+        <ol class="flow">
+          <li>Меню<small>«Все девушки» или «Постранично»</small></li>
+          <li>Героиня<small>из 23 персонажей</small></li>
+          <li>Сюжет<small>20 сценариев или простой чат</small></li>
+          <li>Размер фото<small>512–1024 px</small></li>
+          <li>Как отвечать?<small>«Текстом» или «Голосом»</small></li>
+          <li>Движок и голос<small>если выбран голос</small></li>
+          <li>Сцена<small>приветствие и начало диалога</small></li>
+          <li>Готово<small>можно писать и вызывать команды</small></li>
         </ol>
-        Реальные деградации, из-за которых сменилась одежда в фото, подавляются
-        в коде, а не только правилом для LLM.</li>
-    <li><b>Каждая картинка с одеждой:</b> в промпт фото состояние подставляется
-        ВСЕГДА — если реплика не дала нового состояния, берётся прежнее из
-        сессии (картинка никогда не остаётся без якоря одежды). Сцены начинаются
-        с одежды: систем-промпт обязывает открывать описание сцены тем, что на
-        героине надето/раздета прямо сейчас, поэтому одежда держится стабильной
-        от первого фото к последнему.</li>
-    <li>Перед началом любой генерации бот присылает служебное сообщение:
-        <i>«Рисую сцену — обычно это занимает примерно минуту, ожидай.»</i>
-        Это сообщение СТИРАЕТСЯ, как только картинка отправлена (или случилась
-        ошибка). Живого секундомера нет — Telegram молча отклоняет частые
-        правки сообщения, поэтому используется статичная надпись.</li>
-    <li>При ошибке генерации (две попытки по 1500 сек) бот пишет
-        <i>«[ошибка генерации, смотри логи]»</i>.</li>
-    <li>Размер берётся из выбора пользователя (512/640/768/1024),
-        дефолт — 1024x1024. Размер хранится в сессии.</li>
-    <li>Во время генерации фото текстовая модель временно выгружается из
-        памяти, чтобы не воевать за видеопамять.</li>
-  </ul>
-</section>
+        <p>При выборе «Продолжить диалог» сохраняются история, сцена, память, размер, настройки SFW и озвучки. Режим ответа после этого можно выбрать заново.</p>
+      </div>
+    </section>
 
-<!-- ============================================================= -->
-<!-- ============================================================= -->
-<section id="world">
-  <h2><span class="num">06b</span>Мир и чувства <span class="badge">новое 15–17.11</span></h2>
-  <ul>
-    <li><b>Броски судьбы мира:</b> мир живёт сам — изредка в сцене сами
-        происходят события (звонок в дверь, вибрация телефона, отключение
-        света, курьер с коробкой, дождь, гром, шумные соседи). Героиня
-        отыгрывает событие первой, в начале следующего ответа.</li>
-    <li><b>Шкала симпатии (0–100):</b> у героини есть скрытые чувства к
-        пользователю. Растёт и падает ТОЛЬКО от текста юзера — модель
-        доуточняет их вместе с досье раз в 20 сообщений (17.11: из
-        промптов убрано влияние шкалы — теперь это чистый индикатор).
-        При изменении симпатии придёт уведомление («💕 Симпатия
-        выросла: 55 → 73/100 ↑» или «💔 упала… ↓»), уровень виден в
-        <code>/scene</code> и в меню ПРОШЛЫЙ ДИАЛОГ перед продолжением
-        сохранённого чата. Переживает рестарт.</li>
-    <li><b>Досье юзера — обещания и предметы:</b> героиня помнит, что юзер
-        обещал сделать/подарить/свести куда-то, и значимые вещи, о которых
-        шла речь, — «тот самый подарок» не забудется.</li>
-    <li><b>Сны героини (16.11):</b> вернёшься после получаса молчания —
-        героиня может поделиться, что тебе снилось без тебя: дождь без
-        зонта, ночной поезд к морю, танцы на крыше… Начинает ответ со сна
-        и дальше продолжает сцену.</li>
-  </ul>
-</section>
+    <section id="commands">
+      <div class="card">
+        <h2>Команды</h2>
+        <p class="section-note">Полный список также доступен внутри бота через <code>/help</code>.</p>
 
-<section id="format">
-  <h2><span class="num">07</span>Форматирование ответов</h2>
-  <ul>
-    <li><code>*действие*</code> превращается в НАСТОЯЩИЙ курсив Telegram
-        (парсер Telethon считает смещения по UTF-16);</li>
-    <li><code>&lt;br&gt;</code>, <code>&lt;br/&gt;</code>, <code>&lt;p&gt;</code>,
-        <code>&lt;/p&gt;</code> заменяются на перенос строки;</li>
-    <li>одиночные незакрытые <code>*</code> и бэктики вычищаются —
-        в чат больше не попадают «левые символы».</li>
-    <li><b>Защита от «срыва в ассистента» (19.11):</b> если модель вместо
-        роли отвечает отказом («Извините, но я не могу продолжить»), бот
-        ловит такой ответ, <b>не сохраняет его в историю</b> (раньше отказ
-        отравлял контекст, и героиня переставала играть даже на безобидные
-        просьбы) и один раз переспрашивает строго в роли. Если отказ
-        повторился — приходит короткая реплика-заминка в роли с текущими
-        <code>[SCENE]</code>/<code>[STATE]</code>, а не текст ассистента.
-        Старые «сломанные» сессии автоматически чистятся при продолжении
-        диалога: отказы вырезаются, подряд идущие реплики склеиваются.</li>
-    <li><b>Только первое лицо (19.11):</b> модель больше не описывает
-        героиню со стороны («она чувствует…») — в правилах закреплено
-        «я / моё / меня»; состояние наготы и одежды больше не противоречит
-        само себе («naked, wearing a dress» вычищается), из-за чего героиня
-        переставала «помнить», что уже раздета.</li>
-    <li><b>Одежда «из ниоткуда» (19.11):</b> <code>[STATE]</code> —
-        единственный источник правды об одежде. Из <code>[SCENE]</code>
-        выкидывается любая вещь, которой нет в состоянии (например,
-        «shirt fallen off» при <code>naked</code> больше не превращается в
-        платье на картинке), а если героиня одета — из сцены убираются
-        слова <code>naked</code>/<code>topless</code>/<code>nude</code>.
-        <code>[STATE]</code> тоже чистится: выдуманная вещь, которой не
-        было ни в старом состоянии, ни в сцене, ни в словах пользователя,
-        отбрасывается. Легальное переодевание работает: если попросить
-        «надень красное платье», вещь распознаётся по русскому названию
-        (платье→dress, чулки→stockings и т.д.) и сохраняется. Промпт кадра
-        теперь собирается единой функцией для <code>/kart</code>,
-        <code>/outfit</code> и авто-кадров.</li>
-  </ul>
-  <p>Если разметку разобрать нельзя, текст уходит как есть (без поломок).</p>
-</section>
+        <h3>Диалог и настройки</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Команда</th><th>Назначение</th></tr></thead>
+            <tbody>
+              <tr><td><code>/start</code></td><td>Выбрать меню, героиню и начать настройку заново.</td></tr>
+              <tr><td><code>/girls</code></td><td>Старое меню всех героинь.</td></tr>
+              <tr><td><code>/menu2</code></td><td>Постраничное меню с перелистыванием.</td></tr>
+              <tr><td><code>/come</code></td><td>Позвать вторую героиню. Можно указать имя, папку или номер; <code>/come off</code> убирает её.</td></tr>
+              <tr><td><code>/stories</code></td><td>Сменить сюжет.</td></tr>
+              <tr><td><code>/size</code></td><td>Сменить размер будущих изображений.</td></tr>
+              <tr><td><code>/scene</code></td><td>Показать текущую сцену, состояние и шкалу отношений.</td></tr>
+              <tr><td><code>/short</code>, <code>/long</code></td><td>Короткие или подробные ответы. По умолчанию включён подробный режим.</td></tr>
+              <tr><td><code>/talk</code></td><td>Включить или выключить спонтанные сообщения после 15 минут молчания.</td></tr>
+              <tr><td><code>/sfw</code></td><td>Включить или выключить спойлеры на сгенерированных фото. По умолчанию включено.</td></tr>
+              <tr><td><code>/bye</code></td><td>Сохранить диалог и открыть выбор героини.</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-<!-- ============================================================= -->
-<section id="sessions">
-  <h2><span class="num">08</span>Сохранение сессии</h2>
-  <p>Каждый диалог сохраняется в отдельный JSON-файл (отдельная папка на
-     каждую героиню, файл на каждого пользователя).</p>
-  <p>Автосохранение происходит после каждого ответа, <code>/bye</code>,
-     на конце выбора сюжета/размера. При <code>/start</code> с той же героиней бот сначала
-     предлагает продолжить прошлый диалог или начать новую сессию.</p>
-</section>
+        <h3>Изображения</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Команда</th><th>Назначение</th></tr></thead>
+            <tbody>
+              <tr><td><code>/kart</code></td><td>Полный кадр по текущей сцене. Требует уже существующей сцены.</td></tr>
+              <tr><td><code>/redo</code></td><td>Пересоздать последний кадр с вариацией ракурса — один раз на кадр.</td></tr>
+              <tr><td><code>/outfit</code></td><td>Героиня придумывает новый образ, отвечает репликой, обновляет сцену и присылает полный кадр. Можно добавить пожелание.</td></tr>
+              <tr><td><code>/custom</code></td><td>Диалог и кроп заданной части тела или ракурса без лица. Обновляет те же сцену и состояние, что и остальной диалог.</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-<!-- ============================================================= -->
-<section id="dirs">
-  <h2><span class="num">09</span>Персонажи, сюжеты и папки</h2>
+        <h3>Озвучка</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Команда</th><th>Назначение</th></tr></thead>
+            <tbody>
+              <tr><td><code>/voice</code></td><td>Показать текущий режим, движок, голос и справку.</td></tr>
+              <tr><td><code>/voice on</code>, <code>/voice off</code></td><td>Только голос или только текст.</td></tr>
+              <tr><td><code>/voice mode text|voice</code></td><td>Явный выбор режима ответа.</td></tr>
+              <tr><td><code>/voice engine silero|piper|qwen</code></td><td>Выбрать движок. В меню представлены Silero и Qwen.</td></tr>
+              <tr><td><code>/voice voice &lt;имя&gt;</code></td><td>Задать голос текущей героини.</td></tr>
+              <tr><td><code>/voice voices</code></td><td>Полный список голосов выбранного движка.</td></tr>
+              <tr><td><code>/voice test</code></td><td>Отправить проверочную реплику текущим голосом.</td></tr>
+            </tbody>
+          </table>
+        </div>
 
-  <h3>Персонажи <span class="muted">— JSON-файлы, по одному на героиню</span></h3>
-  <p>Важные поля: <code>name</code> (обязательно), <code>age</code>, <code>about_ru</code>
-     (характер и правила поведения), <code>appearance_ru</code>/<code>appearance_en</code>
-     (внешность — якорь фигуры в каждой генерации), <code>greeting_ru</code>,
-     <code>seed</code> (сид внешности), <code>size</code> (канонический размер фото).</p>
-  <table>
-    <tr><th>Имя</th><th>Seed</th><th>Size</th><th>Возраст</th></tr>
-    <tr><td>Алиса</td><td><code>700214</code></td><td>1024</td><td>28</td></tr>
-    <tr><td>Евгения</td><td><code>113658</code></td><td>1024</td><td>30</td></tr>
-    <tr><td>Гермиона</td><td><code>919592</code></td><td>1024</td><td>20</td></tr>
-    <tr><td>Кира</td><td><code>260091</code></td><td>1024</td><td>26</td></tr>
-    <tr><td>Маша</td><td><code>1823818</code></td><td><span class="muted">нет → 1024</span></td><td>18</td></tr>
-    <tr><td>Мила</td><td><code>420073</code></td><td>1024</td><td>24</td></tr>
-    <tr><td>Оливия</td><td><code>461666</code></td><td>1024</td><td>25</td></tr>
-    <tr><td>Оля</td><td><code>453017</code></td><td>1024</td><td>45</td></tr>
-  </table>
-  <p class="muted">Seed задан у всех — внешность каждой стабильна между запусками.
-     8 героинь = ровная сетка коллажа-меню 4×2.</p>
+        <h3>Только для владельца</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Команда</th><th>Назначение</th></tr></thead>
+            <tbody>
+              <tr><td><code>/users</code></td><td>Текущие допущенные пользователи и остатки лимитов.</td></tr>
+              <tr><td><code>/kick ID</code></td><td>Закрыть доступ пользователя, сохранив диалог.</td></tr>
+              <tr><td><code>/keys</code></td><td>Создание, настройка, отзыв и удаление ключей доступа.</td></tr>
+              <tr><td><code>/stats</code></td><td>Аптайм, время генераций, счётчики и состояние очереди.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-  <h3>Сюжеты <span class="muted">— 8 сюжетов</span></h3>
-  <p>Поле <code>name</code> используется в меню сюжета, <code>scene_ru</code> — подмешивается
-     в системный промпт, <code>greeting_ru</code> — первое сообщение от героини после выбора сюжета.</p>
-  <table>
-    <tr><th>Сюжет</th></tr>
-    <tr><td>Первое свидание в кафе</td></tr>
-    <tr><td>Свидание у неё дома</td></tr>
-    <tr><td>Ночь в отеле</td></tr>
-    <tr><td>Утро после первой ночи</td></tr>
-    <tr><td>Киновечер на диване</td></tr>
-    <tr><td>Домашняя фотосессия</td></tr>
-    <tr><td>Джакузи на двоих</td></tr>
-    <tr><td>Поездка к морю</td></tr>
-  </table>
+    <section id="voice">
+      <div class="card">
+        <h2>Текст или голос</h2>
+        <p class="section-note">Бот не дублирует одну реплику сразу текстом и голосом. Во время генерации он показывает «печатает…» для текста или «записывает голосовое сообщение» для озвучки.</p>
+        <div class="compare">
+          <article class="mode">
+            <h3>Текстом</h3>
+            <p>Обычные текстовые реплики с действиями и описаниями. Самый быстрый режим.</p>
+            <span class="tag">режим по умолчанию</span>
+          </article>
+          <article class="mode">
+            <h3>Голосом</h3>
+            <p>Голосовые сообщения без отдельного текстового дубля. Если озвучка не удалась, бот пришлёт текст и запишет причину в лог.</p>
+            <span class="tag">Qwen3-TTS 0.6B</span><span class="tag">Silero</span>
+          </article>
+        </div>
+        <p>По умолчанию выбран движок <strong>Qwen</strong> и голос <strong>Sohee</strong>. В меню доступны только женские голоса:</p>
+        <div class="tags">
+          <span class="tag"><strong>Qwen:</strong> Vivian, Serena, Ono_Anna, Sohee</span>
+          <span class="tag"><strong>Silero:</strong> Baya, Kseniya, Xenia</span>
+        </div>
+        <p>Образцы для прослушивания берутся из готовых аудиофайлов и не синтезируются заново. Голос можно настроить отдельно для каждой героини. Piper поддерживается текстовой командой, но в меню движков не показан.</p>
+        <div class="callout">
+          <p><strong>Нагрузка:</strong> текст, фото и озвучка проходят через одну очередь. Текст и голос приоритетнее изображений, а одновременная генерация на GPU не запускается.</p>
+        </div>
+      </div>
+    </section>
 
-  <h3>Прочее</h3>
-  <ul>
-    <li><b>Референсы героинь для меню:</b> фото «в одежде» с сидом героини
-        (кэш, генерируется один раз, внешность совпадает со сценами);
-        аватарки — маленькие превью 512px JPEG, создаются автоматически;</li>
-    <li><b>Сканирование живое:</b> список героинь и сюжетов читается заново на
-        каждый вызов — добавил новый JSON-файл, и он появился в меню сразу
-        (перезапуск бота не нужен);</li>
-    <li><b>Структура кода (19.11):</b> <code>bot.py</code> содержит рабочую
-        логику (сценарии, меню, доступ, генерация), а стабильные части
-        вынесены в пакет <code>f_import/</code>: <code>config.py</code>
-        (параметры и пути), <code>people.py</code> (героини/сюжеты),
-        <code>state.py</code> (сцены, отказы, состояние одежды),
-        <code>prompts.py</code> (системный промпт и промпты картинок).</li>
-    <li><b>История генераций:</b> копии всех картинок и логи переписки
-        сохраняются в папки активности.</li>
-  </ul>
-</section>
+    <section id="photos">
+      <div class="card">
+        <h2>Фото и общее состояние</h2>
+        <p class="section-note">Сейчас автоматические кадры выключены. Изображения приходят по командам и кнопкам <code>🖼</code>, <code>👀</code>, <code>🔄</code>.</p>
+        <div class="two-col">
+          <div>
+            <h3>Единый диалог</h3>
+            <ul class="clean">
+              <li><code>/outfit</code> и <code>/custom</code> не ведут отдельную историю: обе команды сначала дают героине ответить и обновить общие <code>[SCENE]</code> и <code>[STATE]</code>.</li>
+              <li><code>/outfit</code> создаёт полный кадр в новом образе.</li>
+              <li><code>/custom</code> создаёт кроп из того же состояния. Лицо в этот кадр не попадает.</li>
+              <li>Временное изменение одежды для кропа не откатывает постоянный наряд.</li>
+              <li>Обе команды работают после выбора героини даже до появления первой сцены.</li>
+            </ul>
+          </div>
+          <div class="callout">
+            <p><strong>SFW:</strong> спойлеры включены для всех пользователей, включая владельца. Повторный <code>/sfw</code> выключает их. Превью героинь в меню остаются без спойлера.</p>
+          </div>
+        </div>
+        <h3>Кнопки в диалоге</h3>
+        <div class="tags">
+          <span class="tag"><code>🖼</code> кадр по сцене</span>
+          <span class="tag"><code>🔄</code> пересоздать последний кадр</span>
+          <span class="tag"><code>👀</code> переодеться</span>
+          <span class="tag"><code>❓ Команды</code> справка</span>
+          <span class="tag"><code>⛔</code> сохранить и выйти</span>
+        </div>
+      </div>
+    </section>
 
-<!-- ============================================================= -->
-<section id="history">
-  <h2><span class="num">10</span>История правок <span class="muted">(кратко)</span></h2>
-  <ul>
-    <li><b>25.11:</b> добавлен выбор двух меню. <code>/start</code> предлагает
-        «Все девушки» (старое <code>/girls</code>) и «Постранично» (новое
-        <code>/menu2</code>); обе команды доступны напрямую. Новое меню редактирует
-        одно сообщение с фото/карточкой и кнопками «Назад» / «Выбрать!» / «Дальше»,
-        использует лёгкие JPEG-превью без спойлеров. Список героинь обновляется
-        при открытии без перезапуска, а генерируемые фото продолжают учитывать
-        <code>/sfw</code>.</li>
-    <li><b>25.11:</b> <code>/sfw</code> включён по умолчанию для всех,
-        включая админа. Если в состоянии или старой сессии нет поля
-        <code>sfw</code>, фото приходят под спойлером; явно сохранённое
-        выключенное состояние сохраняется. Первый <code>/sfw</code> без
-        сохранённого выбора выключает спойлеры, следующий включает.</li>
-    <li><b>20.11:</b> новая команда <code>/come</code> — позвать вторую
-        героиню из <code>rp-people</code> в текущий диалог
-        (<code>/come Снежана</code>). Дальше обе отвечают <b>одним
-        сообщением</b>, каждая своим блоком с именем: <b>Оля:</b> …
-        <b>Снежана:</b> … Убрать вторую — <code>/come off</code>. Вторая
-        героиня сохраняется в сессии и возвращается при «Продолжить
-        диалог». Кадры в этом режиме рисуются с двумя женщинами
-        (отдельный позитив и негатив, внешность обеих в промпте), а
-        <code>/custom</code> остаётся кропом только главной героини.</li>
-    <li><b>23.11:</b> доработка <code>/custom</code> — «не показывает то, что
-        просишь». Команда понимала только узкий список слов, а остальное молча
-        превращала в общий кадр тела. Что сделано:
-        <b>1)</b> словарь частей тела расширен до ~60 шаблонов с падежами
-        (пупок, половые губы, клитор, анус, икры, голени, колени, пятки,
-        ступни, пальцы ног, ключицы, лопатки, подмышки, запястья, рёбра,
-        позвонки, бока, лобок и др.); «пальчики на ножках» теперь
-        <code>toes</code>, а не <code>fingers</code>+<code>legs</code>;
-        <b>2)</b> несколько частей в одном запросе — «попа и грудь» даёт кадр
-        по обеим, и зонный негатив не выкидывает вторую часть;
-        <b>3)</b> позы и ракурсы не теряются: «раздвинутые ноги» даёт позу +
-        ноги, «лежит на спине» не превращается в часть «спина», а «жопой в
-        кадр с раздвинутыми ногами» режет по попе, а не по ногам;
-        <b>4)</b> одежда в запросе — «в трусиках»/«в лифчике»/«в чулках»
-        оставляют только эту вещь, «без лифчика»/«без трусиков» снимают
-        вещь и зону, «в одежде» не трогает наряд, «голая» — нагота;
-        <b>5)</b> состояние <code>[STATE]</code> согласуется с запросом, и
-        конфликт «wearing a dress» + «no clothing covering» исчез;
-        <b>6)</b> если ничего не распознано — подсказка вместо случайного
-        тела, на «лицо» — совет использовать <code>/kart</code>.
-        Разбор вынесен в <code>_custom_parse()</code>, сборка промпта — в
-        <code>_custom_build()</code>, состояние — в <code>_crop_state()</code>;
-        <code>_custom_prompt()</code> остался совместимой обёрткой. Проверка:
-        <code>test_custom_fix.py</code> — 117 проверок, 0 проблем; регрессия
-        (custom, come, stick, tags, refusal, recover, clothes, help, summary,
-        state, camera, appearance, futanari) — зелёная. Попутно восстановлен
-        случайно удалённый <code>errors.py</code> (<code>ContextOverflowError</code>),
-        без него бот не стартовал.</li>
-    <li><b>22.11:</b> фикс утечки сцены в любом регистре (<code>&lt;|scenE|&gt;</code>).
-        В диалоге проскакивала строка «?&lt;|scenE|&gt; woman casually leaning
-        against the elevator wall…». Причина: нормализация тегов была
-        регистрозависимой — менялись только <code>&lt;|SCENE|&gt;</code> и
-        <code>&lt;|STATE|&gt;</code> капсом, поэтому <code>&lt;|scenE|&gt;</code>
-        не распознавался и английское описание кадра уходило в чат. Теперь общая
-        функция <code>_normalize_tags</code> (через неё работают и обычный, и
-        «двойной» разбор) регистронезависимо приводит к
-        <code>[SCENE]/[STATE]</code> все варианты: <code>&lt;|scenE|&gt;</code>,
-        <code>|Scene|</code>, <code>&lt;SCENE&gt;</code>, <code>[scene]</code>,
-        <code>SCENE:</code> и голый <code>SCENE:</code> посреди строки. Если
-        после вырезания тега в тексте остались только знаки («?»), ответ
-        считается пустым и уходит на ретрай, а не в чат. Проверка:
-        <code>test_tags.py</code> — 70 проверок, 0 проблем; прогон по 367
-        ответам из всех сессий — утечек 0.</li>
-    <li><b>22.11:</b> фикс «залипания одежды» в диалоге. Фото приходит без
-        одежды, а героиня в тексте продолжает говорить про трусики. Причина:
-        в истории хранился сырой ответ модели, где <code>[STATE]</code> —
-        «naked, heels on, lingerie on», а <code>[SCENE]</code> — «lingerie
-        hinting at her curves». Картинка собирается через очистку
-        противоречий (поэтому фото без одежды), но модель видит свой же
-        текст в истории и копирует его. Теперь в историю кладётся
-        согласованный вариант: видимые реплики + одна пара
-        <code>[SCENE]/[STATE]</code> без снятой одежды, а старые сессии
-        лечатся автоматически на следующем сообщении. Заодно состояния с
-        разделителем «;» тоже чистятся, а при naked/topless модели прямо
-        запрещено упоминать бельё.</li>
-    <li><b>21.11:</b> фикс утечки <code>SCENE</code> в текст. Модель часто
-        пишет теги в одну строку («… <code>[SCENE]</code> two women …
-        <code>[STATE]</code> naked»), и построчный разбор принимал описание
-        сцены за реплику — английская строка уходила в чат. Теперь разбор
-        идёт по кускам между тегами: значение обрывается на заголовке блока
-        <b>Имя:</b> или на первой русской букве, многострочные описания
-        склеиваются, понимаются варианты <code>[SCENE: …]</code> и голый
-        <code>SCENE:</code>. Если модель забыла тег и написала описание
-        кадра обычной строкой, она тоже не показывается.</li>
-    <li><b>21.11:</b> ответ на две героини разбирается устойчиво
-        (<code>_split_scene_multi</code>): модель ставит
-        <code>[SCENE]/[STATE]</code> после каждого блока, и обычный разбор
-        обрезал вторую девушку — теперь вырезаются все теги, видны обе
-        реплики, сцена берётся первая. Имена в блоках приходят
-        <b>жирным</b>, действия — курсивом.</li>
-    <li><b>20.11:</b> у второй женщины в кадре больше не бывает члена.
-        Сцена «woman kneeling in front of a man…» после вычистки слова
-        <code>man</code> оставляла обрывок «in front of a» — модель
-        дорисовывала на пропуске второго человека, а из-за запрета на
-        мужчин это была женщина с членом. Теперь связки «предлог + man»
-        убираются целиком (<code>in front of a man</code> →
-        <code>in front of the camera</code>), а в негатив добавлены
-        <code>futanari</code>, <code>shemale</code>, <code>dickgirl</code>,
-        <code>hermaphrodite</code>, <code>penis</code>,
-        <code>male genitalia</code>, «woman with a penis». Подруга
-        в кадре остаётся допустимой — запрещён только член.</li>
-    <li><b>20.11:</b> в сводке «ВСЁ ГОТОВО» больше нет фразы «приходят
-        сами по мере диалога» — при выключенных авто-кадрах там теперь
-        «по кнопке 🖼 или команде /kart».</li>
-    <li><b>20.11:</b> <code>start.bat</code>, пункт «Остановить бот» больше
-        не убивает Ollama: сервис остаётся работать, а все модели
-        выгружаются из VRAM через API (<code>/api/ps</code> +
-        <code>keep_alive=0</code>). «Перезапустить бот» модель не трогает —
-        она остаётся в памяти.</li>
-    <li><b>20.11:</b> в <code>/help</code> копируются только команды
-        с аргументами: <code>/custom</code>, <code>/kick</code> и примеры
-        (<code>/custom грудь</code>, <code>/outfit вечернее платье</code>).
-        Нажатие на них не отправляет команду, а кладёт её в буфер — можно
-        дописать аргументы. Команды без аргументов (<code>/start</code>,
-        <code>/kart</code>, <code>/outfit</code>, <code>/bye</code> и т.д.)
-        остались обычными и нажимаются сразу. <code>/help</code> уходит
-        с <code>parse_mode="html"</code>.</li>
-    <li><b>20.11:</b> <code>/custom</code> больше не «уезжает» выше пупка:
-        кадр жёстко обрезан по запрошенной части тела (для низа — «от пупка
-        и ниже», для груди — «верх тела до груди», для живота — «середина»).
-        Причина была в якоре внешности <code>appearance_en</code>: он
-        заканчивался словами про лицо и стоял в конце промпта, а у
-        LLM-энкодера конец весит сильнее всего. Теперь для <code>/custom</code>
-        якорь без лица ставится перед запросом, а сам кроп — последним.</li>
-    <li><b>19.11:</b> <code>start.bat</code> после разгрузки кода: проверка
-        удалённого сервера картинок теперь читает
-        <code>SD_API_URL</code>/<code>SD_API_TOKEN</code> из
-        <code>f_import/config.py</code> (раньше — из <code>bot.py</code>,
-        из-за чего статус в меню всегда был «не задан»).</li>
-    <li><b>19.11:</b> разгрузка <code>bot.py</code>: параметры, промпты и
-        стабильные утилиты вынесены в пакет <code>f_import/</code>
-        (<code>config</code>, <code>people</code>, <code>state</code>,
-        <code>prompts</code>). Поведение не менялось — код перенесён
-        дословно, тесты зелёные.</li>
-    <li><b>19.11:</b> одежда «из ниоткуда»: <code>[STATE]</code> стал
-        единственным источником правды об одежде. Из <code>[SCENE]</code>
-        выкидываются вещи, которых нет в состоянии, из <code>[STATE]</code> —
-        выдуманные вещи, которых не было ни в сцене, ни в словах юзера;
-        легальное переодевание («надень красное платье») сохраняется.
-        Промпт кадра собирается единой функцией <code>_img_prompt</code>
-        для <code>/kart</code>, <code>/outfit</code> и авто-кадров.</li>
-    <li><b>19.11:</b> защита от «срыва в ассистента»: отказы модели
-        («я не могу продолжить») больше не попадают в историю и не ломают
-        следующие ответы — бот переспрашивает в роли, а при повторном отказе
-        отдаёт нейтральную реплику-заминку. Старые сессии чистятся при
-        продолжении. Добавлено правило «только первое лицо» и чистка
-        противоречий состояния («naked, wearing a dress»).</li>
-    <li><b>19.11:</b> команда <code>/custom</code> — кадр заданной части тела
-        или ракурса БЕЗ лица (<code>/custom грудь</code>,
-        <code>/custom ноги снизу вверх</code>): русские названия частей тела
-        и ракурсов переводятся в SD-промпт, лицо выносится за кадр позитивом
-        и негативом, наряд/поза берутся из сцены, лимиты общие с
-        <code>/kart</code>. Добавлена в <code>/help</code>.</li>
-    <li>Липкая клавиатура и команды: ярлыки кнопок раньше не совпадали
-        с командами — добавлен перевод ярлык→команда.</li>
-    <li>Курсив вместо звёздочек; чистка <code>&lt;br&gt;</code>, <code>*</code>, бэктиков.</li>
-    <li><code>/bye</code> показывает меню героинь после сохранения.</li>
-    <li>Тайминги: «Рисую сцену… &lt;примерно минуту&gt;» + удаление сообщения после
-        отправки фото (живой таймер не работал — Telegram режет правки).</li>
-    <li>Выбор размера фото при старте (от быстрой 512x512 до 1024x1024),
-        хранение в сессии.</li>
-    <li>Выбор сюжета перед каждым новым диалогом + «просто чат без сюжета».</li>
-    <li>Выбор «Продолжить диалог»/«Новая сессия» при наличии сохранения.</li>
-    <li>Сводка настроек сцены после выбора всех ключевых моментов.</li>
-    <li>Кнопки во всех меню; «хочу фото» на клавиатуре всегда: стирает
-        нажатие из чата и рисует сразу по текущей сцене (авто-кадры с 17.11
-        выключены — фото только по кнопке).</li>
-    <li>Меню не флудят: цепочку меню бот переиспользует одним сообщением.</li>
-    <li>Ответы пользователя в меню (выбор героини/сюжета/размера и т.п.) удаляются
-        из чата сразу после обработки.</li>
-    <li>Сид генерации стал детерминированным (md5 от имени) — внешность больше
-        не «плывёт» между запусками.</li>
-    <li>Меню переведены со схемы «правка сообщения» на «удалил старое + новое»:
-        Telegram отклоняет EditMessage (MessageIdInvalidError), а визуально
-        результат тот же — в чате всегда одно меню.</li>
-    <li>В генерацию картинок вшито правило «никаких мужчин на фото, только героиня»
-        (solo-композиция + расширенный негатив).</li>
-    <li>Описание внешности героини входит в каждый промпт генерации (фигура больше
-        не плывёт); состояние одежды подмешивается в систем-промпт чата — героиня
-        помнит текущую одежду/позу.</li>
-    <li>Доступ по ключу: ключ вводится при каждом запуске, таймер времени,
-        уведомления о входах; меню управления ключами у администратора.</li>
-    <li>Очередь и лимиты нагрузки: текст по одному (макс 3 ждущих), фото по
-        одному (макс 2 ждущих), антифлуд 10 сек на пользователя в сцене;
-        при переполнении бот вежливо отказывает.</li>
-    <li>Оптимизация под мультиюзера: обрезка истории сессии (30 сообщений),
-        подогрев текстовой модели после фото, шаги генерации фото 20 → 18,
-        показ позиции в очереди.</li>
-    <li>Борьба с мужскими телами в кадре: сцены чистятся от мужских слов,
-        промпт переписан под LLM-энкодер.</li>
-    <li>Экран одежды: деградации состояния (исчезающие чулки, откат наготы)
-        подавляются в коде; промпт фото всегда содержит состояние.</li>
-    <li>Орфография реплик: правило грамотной русской речи в систем-промпте,
-        temperature 0.5, repeat_penalty 1.03.</li>
-    <li>Меню после выбора размера удаляется: старт сцены закрывает меню-сообщение
-        удалением; повторный close безопасен.</li>
-    <li>Страховка формата и вариация кадра: узкий ретрай при пропусках сцены/текста,
-        случайная вариация ракурса при повторе сцены.</li>
-    <li>Меню героинь: сначала текст+альбом фото по одному, потом альбом,
-        теперь — ОДНО сообщение-коллаж (фото сеткой + имена под фото).</li>
-    <li>Антифлуд «Хочу фото»: кулдаун 60 сек + бюджет 20 фото/час;
-        персональный лимит по ключу (kart_max/kart_min) заменяет общие
-        барьеры; строка остатка нажатий в /users и под фото; живое
-        уведомление «снова можно нажать» без тикающего таймера.</li>
-    <li>Готовый кадр не уходит в закрытую сессию (кик/истёкший ключ).</li>
-    <li>Английский никогда не показывается юзеру: теги [SCENE]/[STATE]
-        (промпты картинок) вырезаются из видимого текста даже при кривом
-        формате ответа модели; в файле сессии они хранятся как рабочий
-        контекст — это норма.</li>
-    <li>Валидатор сцены: деградации бракуются до генерации — сцена от
-        первого лица («My back arched as you…») и сцена с мужчиной у
-        героинь без allow_man переделываются узким ретраем.</li>
-    <li>Фразовая чистка промпта: «legs wrapped around him» → «legs raised
-        and spread», «back against his chest» → «back arched», «turning to
-        face him» → «turning to face the camera» и ещё ~20 фраз — модель
-        больше не рисует партнёра по остаткам вычесанных слов.</li>
-    <li>Негатив против артефактов генерации: светящиеся глаза, невозможная
-        анатомия, сросшиеся/перевёрнутые тела, «лицо» вместо частей тела.</li>
-    <li>Конструктор персонажей (в шапке страницы): 17 вариантов отношения
-        к пользователю — тёплые и сложные, все «сложные» заканчиваются
-        «но любишь его» (включая «девочка-псих»); 46 черт характера
-        (позитивные + негативные); тумблер «нулевой резист к магии»;
-        типаж внешности: европейская (по умолчанию), азиатская
-        (японка/кореянка/китаянка), латиноамериканская, темнокожая,
-        индийская, ближневосточная, смешанная; макияж (без, лёгкий,
-        яркий с красными губами, вечерний гламурный, тёмный готический);
-        голос и манера речи (нежный, бархатный, хрипловатый, звонкий,
-        шёпот, певучий) — влияет на текст сообщений; базовый гардероб
-        (7 стилей «по умолчанию», от джинсов с кофтами до готики —
-        до кнопки «переодеться»); причёски/25 цветов волос;
-        грудь с чашкой; 25 деталей внешности
-        и фэнтези-чипы (ушки, хвост, рожки, крылья, нимб, гетерохромия).</li>
-    <li><b>Персонаж из фото</b> (локальный скрипт <code>person-from-photo.cmd</code>,
-        не команда бота): перетащи на него файл фотографии — зрительная модель
-        опишет внешность девушки и соберёт готовый JSON персонажа (как из
-        конструктора), героиня появится в ОБОИХ меню (<code>/girls</code> и
-        <code>/menu2</code>) при их следующем открытии, без перезапуска. Внешность
-        передаётся по описанию — персонаж получится похожим на фото, не копией.
-        Зрительная модель <code>qwen2.5vl:3b</code> качается один раз
-        (<code>ollama pull qwen2.5vl:3b</code>) и после работы сама выгружается
-        из видеопамяти.</li>
-    <li>Очередь генерации переделана: ВЕСЬ (текст + фото) идёт через
-        одну строгую очередь, все — по порядку, генерация вне очереди
-        для админа убрана; отказов «очередь переполнена» больше нет —
-        каждый просто дожидается своего хода. Параллельные генерации
-        больше не дерутся за видеопамять — ПК не лагает.</li>
-    <li>Старое меню <code>/girls</code> собирается в ШИРИНУ: до 8 колонок
-        (альбомная сетка ~1720px) вместо двух колонок — при большом количестве
-        героинь список стало видно одним взглядом.</li>
-    <li>НОВАЯ КОНЦЕПЦИЯ ФОТО: кнопка «Хочу фото» выключена — фото приходят
-        сами по ходу диалога (примерно раз в 3 сообщения при новой сцене,
-        каждое со своей вариацией ракурса). Кнопка «исправить фото»:
-        последний присланный кадр можно пересоздать РОВНО ОДИН РАЗ,
-        после чего кнопка пропадает до следующего кадра.</li>
-    <li>Брак-кадры не доходят до юзера: почти чёрный/белый/одноцветный
-        кадр ловится проверкой яркости и сразу перегенерируется.</li>
-    <li>Крупные планы (close-up/portrait) рисуются вертикальным кадром
-        832×1216 — в квадрате крупные планы выглядели пусто.</li>
-    <li>Качество генерации: шаги 18 → 20, cfg-scale 3.0 → 3.5.</li>
-    <li>Память сюжета: когда переписка перерастает 30 сообщений, выпавшее
-        начало сжимается в 3–5 предложений и всегда подмешивается в
-        контекст — героиня не забывает, с чего всё началось.</li>
-    <li>Героиня сама пишет, если юзер пропал на 15 минут (тумблер
-        «напоминать о себе» в каждом меню), — один раз за молчание.</li>
-    <li>Живое настроение: правило в систем-промпте — отношение героини
-        меняется от поступков юзера (обидеться, похолодеть, растаять).</li>
-    <li>Время суток в контексте: героиня знает, сколько сейчас часов,
-        и подстраивает интонацию.</li>
-    <li>Команда /scene — показать текущую сцену/состояние кадра.</li>
-    <li>Оптимизации 15.11: ускоренные авто-кадры (14 шагов, «исправить
-        фото» — на полных 20), защита от дубля авто-кадра в очереди,
-        пропуск фонового кадра при занятой очереди, автоповтор при сбое
-        модели через 3 секунды, тумблер длины ответов /short//long,
-        /stats для админа (аптайм, средние скорости, очередь, сессии).</li>
-    <li>Память о юзере: героиня ведёт досье пользователя (имя, характер,
-        что любит, как обращается) — обновляется раз в 20 сообщений,
-        хранится в сессии и всегда в контексте.</li>
-    <li>Скользящее сжатие памяти: старый пересказ не затирается, а
-        объединяется с новым куском в единую выжимку — память сюжета
-        не «съедается» в очень длинных диалогах.</li>
-    <li>Фото-фичи роли: кадры-воспоминания
-        в винтажном стиле, селфи-кадры (~каждый четвёртый), кадры-реакции
-        512x512 с эмоцией героини на коротких репликах — все приходят
-        сами и уважают занятую очередь.</li>
-    <li>«Переодеться» (/outfit): героиня меняет наряд под сцену с кадром
-        сразу; фикс 18.11 — вторая смена до доставки кадра блокируется,
-        кулдаун от доставленного кадра, мгновенный отклик «Подбираю
-        наряд…»; эволюция внешности ([STATE] помнит следы событий);
-        свет кадров по реальному времени суток.</li>
-    <li>Броски судьбы мира: изредка в сцене сами происходят события
-        (звонок, стук в дверь, гром) — героиня отыгрывает их первой
-        в следующем ответе.</li>
-    <li>Шкала симпатии (0–100): скрытые чувства героини показываются
-        в /scene, обновляются текстом юзера через досье
-        (17.11: из промптов убрано влияние шкалы — чистый индикатор);
-        при изменении симпатии юзеру приходит уведомление
-        («выросла ↑»/«упала ↓»), уровень также показывается в меню
-        ПРОШЛЫЙ ДИАЛОГ; переживают рестарт.</li>
-    <li>Досье юзера расширено: важные обещания юзера и значимые
-        предметы/подарки — героиня помнит «тот самый подарок».</li>
-    <li>Сны героини: после получаса молчания она может начать ответ
-        с рассказа, что ей снилось (шанс 50%).</li>
-    <li>Подпись под кадром: фото приходят с собственной подписью
-        героини одной строкой (генерится, пока текстовая модель ещё
-        в видеопамяти — почти без затрат времени).</li>
-  </ul>
-</section>
+    <section id="catalog">
+      <div class="card">
+        <h2>Героини и сюжеты</h2>
+        <p class="section-note">На 26.11.2026 в боте 23 героини и 20 сюжетов. Списки не зашиты в код: новые JSON-файлы появляются в обоих меню при следующем открытии.</p>
+        <div class="two-col">
+          <div>
+            <h3>Героини</h3>
+            <p>Алиса, Анна, Дарья, Евгения, Гермиона, Кира, Кристина, Лиза, Маша, Мила, Мира, Оливия, Оля, Рин, Сильвия, Снежана, Со Ён, Сяо, Варвара, Вика (Псих), Виолетта(ебнутая), Жаннет, Жасмин.</p>
+          </div>
+          <div>
+            <h3>Сюжеты</h3>
+            <p>Первое свидание в кафе, Свидание у неё дома, Ночь в отеле, Утро после первой ночи, Киновечер на диване и другие. Доступен режим «просто чат без сюжета».</p>
+          </div>
+        </div>
+        <details>
+          <summary>Показать все 20 сюжетов</summary>
+          <div>
+            <div class="chips">
+              <span>Побег на балкон</span><span>Случайность в книжном магазине</span><span>Первое свидание в кафе</span><span>Поломка на трассе</span><span>Кулинарный мастер-класс</span><span>Свидание у неё дома</span><span>Застряли в лифте</span><span>Ночь в отеле</span><span>Встреча у почтовых ящиков</span><span>Утро после первой ночи</span><span>Киновечер на диване</span><span>Срочный проект</span><span>Домашняя фотосессия</span><span>Потерянный щенок</span><span>Загадка квест-комнаты</span><span>Ожидание под дождем</span><span>Случайный кадр</span><span>Джакузи на двоих</span><span>Попутчик в ночном поезде</span><span>Поездка к морю</span>
+            </div>
+          </div>
+        </details>
+        <a class="button" href="char-maker.html">Открыть конструктор персонажей →</a>
+      </div>
+    </section>
 
-<footer>
-  rp-chat-tgbot · документация · самая свежая версия всегда здесь
-</footer>
+    <section id="version">
+      <div class="card">
+        <h2>Что изменилось в new lvl</h2>
+        <div class="two-col">
+          <div>
+            <h3>Добавлено</h3>
+            <ul class="clean">
+              <li>Silero и Qwen3-TTS, выбор текста или голоса перед диалогом.</li>
+              <li>Женские голоса, готовые образцы и индивидуальная настройка для героини.</li>
+              <li>Общая очередь текста, голоса и фото.</li>
+              <li>Логи этапов озвучки и её длительности.</li>
+              <li>Единый диалог и общее состояние для <code>/outfit</code> и <code>/custom</code>.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Удалено или выключено</h3>
+            <ul class="clean">
+              <li>Авто-кадры, авто-селфи, стикеры-реакции и флешбэки выключены.</li>
+              <li>Команды <code>/qb</code>, <code>/qb-on</code>, <code>/qb-off</code> и броски d20 удалены.</li>
+              <li>Старая команда <code>/avto</code> удалена.</li>
+              <li>Входящие фото, видео и другие медиа не обрабатываются.</li>
+              <li>Отдельного SSML/phoneme-интерфейса для управления ударениями нет.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 
-</div>
+  <footer>
+    <div class="wrap">
+      <span>rp-chat-tgbot · документация new lvl</span>
+      <span>Обновлено 26.11.2026</span>
+    </div>
+  </footer>
 </body>
 </html>
